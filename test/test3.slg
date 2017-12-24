@@ -1,0 +1,8 @@
+VAR
+ a b
+BEGIN
+ a := 1 - 10
+ WRITE a;
+ b := 1 + 100
+ WRITE b;
+END

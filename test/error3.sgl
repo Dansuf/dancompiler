@@ -1,0 +1,5 @@
+VAR
+  a b c d e
+BEGIN
+  WRITE x;
+END

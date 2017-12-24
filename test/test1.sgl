@@ -1,0 +1,6 @@
+VAR
+ d[100] a
+BEGIN
+ d[1] := 0
+ WRITE d[1];
+END

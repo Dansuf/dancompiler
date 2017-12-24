@@ -1,0 +1,7 @@
+VAR
+ d[100] a
+BEGIN
+ READ a;
+ d[1] := a - 1
+ WRITE d[1];
+END

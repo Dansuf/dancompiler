@@ -1,0 +1,5 @@
+VAR
+  a b c d e f g a g h d s
+BEGIN
+  READ a;
+END
