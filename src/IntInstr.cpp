@@ -259,7 +259,7 @@ InstructionRegistry IntInstr::translate(VariableRegistry& variables)
       }
       IntInstr::addLoadInstruction(variables,out,this->val2);
       IntInstr::addSubInstruction(variables,out,val3);
-      IntInstr::addStoreInstruction(variables,out,this->val1);
+      if(!this->val1.empty()) IntInstr::addStoreInstruction(variables,out,this->val1);
       variables.freeAssemblerTemps();
       break;
     case IntInstrType::MUL:

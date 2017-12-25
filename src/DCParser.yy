@@ -108,6 +108,8 @@ commands:  commands command                     { $1.append($2); $$ = $1; }
 command:   identifier SET expression            { CATCH($$ = driver.parseAssign($1,$3),@1) }
          | READ identifier SEMICOLON            { CATCH($$ = driver.parseRead($2),@1) }
          | WRITE identifier SEMICOLON           { CATCH($$ = driver.parseWrite($2),@1) }
+         | IF condition THEN commands ENDIF     { CATCH($$ = driver.parseIf($2,$4),@1)}
+         | IF condition THEN commands ELSE commands ENDIF { }
          ;
 
 expression: value                               { $$ = Expression($1); }
