@@ -16,6 +16,10 @@ public:
 
   void addInstr(IntInstrAbstr* instr);
 
+  std::vector<std::shared_ptr<IntInstrAbstr>> getInstructions();
+
+  void append(IntInstrBlock block);
+
   void dbgPrint() override;
 
   InstructionRegistry translate(VariableRegistry& variables) override;

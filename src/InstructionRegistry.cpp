@@ -62,7 +62,7 @@ lint InstructionRegistry::append(InstructionRegistry ir)
 
   auto labels = ir.getLabels();
 
-  for(auto label : labels)
+  for(auto label : labels) //TODO better ??
   {
     this->labels.insert(std::make_pair(label.first,label.second+lastAddr));
   }

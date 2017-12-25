@@ -7,6 +7,18 @@ void IntInstrBlock::addInstr(IntInstrAbstr* instr)
   this->instructions.push_back(std::shared_ptr<IntInstrAbstr>(instr));
 }
 
+std::vector<std::shared_ptr<IntInstrAbstr>> IntInstrBlock::getInstructions()
+{
+  return this->instructions;
+}
+
+void IntInstrBlock::append(IntInstrBlock block)
+{
+  auto instructions = block.getInstructions();
+
+  this->instructions.insert(this->instructions.end(),instructions.begin(),instructions.end());
+}
+
 void IntInstrBlock::dbgPrint()
 {
   for(auto instr : this->instructions)

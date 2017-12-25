@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "values.hpp"
+#include "Value.hpp"
 
 enum class Operator
 {
@@ -11,30 +11,30 @@ enum class Operator
 
 class Expression
 {
-  std::string val1;
-  std::string val2;
+  Value val1;
+  Value val2;
   Operator op;
 
 public:
-  Expression(std::string val1, Operator op, std::string val2): val1(val1), val2(val2), op(op) {};
-  Expression(std::string val1): val1(val1) {};
+  Expression(Value val1, Operator op, Value val2): val1(val1), val2(val2), op(op) {};
+  Expression(Value val1): val1(val1) {};
   Expression() {};
 
   bool onlyOneVal()
   {
-    if(this->val2.empty())
+    if(this->val2.get().empty())
     {
       return true;
     }
     return false;
   }
 
-  std::string getVal1()
+  Value getVal1()
   {
     return this->val1;
   }
 
-  std::string getVal2()
+  Value getVal2()
   {
     return this->val2;
   }

@@ -20,7 +20,6 @@ class DCDriver{
    DC::DCParser  *parser  = nullptr;
    DC::DCScanner *scanner = nullptr;
 
-   IntInstrBlock intInstructions;
    InstructionRegistry instructions;
    VariableRegistry variables;
 
@@ -35,14 +34,14 @@ public:
 
    void declareVariable(std::string variable);
    void declareArray(std::string variable, lint size);
-   void postDecl();
 
-   void parseRead(std::string variable);
-   void parseWrite(std::string variable);
-   void parseAssign(std::string variable,Expression expr);
-   void parseVariable(std::string variable);
-   std::string parseArrayLookup(std::string variable,std::string index);
-   void halt();
+   IntInstrBlock parseRead(Value variable);
+   IntInstrBlock parseWrite(Value variable);
+   IntInstrBlock parseAssign(Value variable,Expression expr);
+   Value parseVariable(std::string variable);
+   Value parseArrayLookup(std::string variable,std::string index);
+   Value parseArrayLookup(std::string variable,lint index);
+   void halt(IntInstrBlock block);
 
    std::ostream& print(std::ostream &stream);
 };

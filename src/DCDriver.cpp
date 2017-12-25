@@ -69,53 +69,54 @@ void DC::DCDriver::declareArray(std::string variable, lint size)
    this->variables.addArrayVariable(variable,size);
 }
 
-void DC::DCDriver::postDecl()
+IntInstrBlock DC::DCDriver::parseRead(Value variable)
 {
-   auto arrays = this->variables.getArrays();
-   for(std::string arr : arrays)
-   {
-      this->intInstructions.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SET,arr,VariableRegistry::toConst(variables.getIndex(arr)+1)));
-   }
-}
+   IntInstrBlock block;
 
-void DC::DCDriver::parseRead(std::string variable)
-{
-   //lint index = this->variables.get_index(variable);
-   this->variables.assertStorableVariable(variable);
+   this->variables.assertStorableVariable(variable.get());
 
-   intInstructions.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::GET,variable,"",""));
-   //instructions.add_instruction(Instr::GET);
-   //instructions.add_instruction(Instr::STORE,index);
+   variable.appendInitInstr(block);
+   block.addInstr((IntInstrAbstr*) new IntInstr(IntInstrType::GET,variable.get()));
+
    this->variables.freeIntTemps();
+
+   return block;
 }
 
-void DC::DCDriver::parseWrite(std::string variable)
+IntInstrBlock DC::DCDriver::parseWrite(Value variable)
 {
-   //lint index = this->variables.get_index(variable);
-   this->variables.assertLoadableVariable(variable);
+   IntInstrBlock block;
 
-   intInstructions.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::PUT,variable));
-   //instructions.add_instruction(Instr::LOAD,index);
-   //instructions.add_instruction(Instr::PUT);
+   this->variables.assertLoadableVariable(variable.get());
+
+   variable.appendInitInstr(block);
+
+   block.addInstr((IntInstrAbstr*) new IntInstr(IntInstrType::PUT,variable.get()));
+
    this->variables.freeIntTemps();
+
+   return block;
 }
 
-void DC::DCDriver::parseAssign(std::string variable,Expression expr)
+IntInstrBlock DC::DCDriver::parseAssign(Value variable,Expression expr)
 {
-   this->variables.assertStorableVariable(variable);
+   IntInstrBlock block;
 
-   std::string val1_name = expr.getVal1();
-   this->variables.assertLoadableVariable(val1_name); //TODO change for sth more universal
+   this->variables.assertStorableVariable(variable.get());
 
+   Value val1 = expr.getVal1();
+   this->variables.assertLoadableVariable(val1.get()); //TODO change for sth more universal
 
    if(expr.onlyOneVal())
    {
-      intInstructions.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SET,variable,val1_name));
+      variable.appendInitInstr(block);
+      val1.appendInitInstr(block);
+      block.addInstr((IntInstrAbstr*) new IntInstr(IntInstrType::SET,variable.get(),val1.get()));
    }
    else
    {
-      std::string val2_name = expr.getVal2();
-      this->variables.assertLoadableVariable(val2_name); //TODO change for sth more universal
+      Value val2 = expr.getVal2();
+      this->variables.assertLoadableVariable(val2.get()); //TODO change for sth more universal
       IntInstrType type;
 
       switch(expr.getOp())
@@ -137,17 +138,25 @@ void DC::DCDriver::parseAssign(std::string variable,Expression expr)
             break; //TODO default
       }
 
-      intInstructions.addInstr((IntInstrAbstr*)new IntInstr(type,variable,val1_name,val2_name));
+      variable.appendInitInstr(block);
+      val1.appendInitInstr(block);
+      val2.appendInitInstr(block);
+
+      block.addInstr((IntInstrAbstr*) new IntInstr(type,variable.get(),val1.get(),val2.get()));
    }
    this->variables.freeIntTemps();
+
+   return block;
 }
 
-void DC::DCDriver::parseVariable(std::string variable)
+Value DC::DCDriver::parseVariable(std::string variable)
 {
    this->variables.assertLoadableVariable(variable);
+
+   return Value(variable);
 }
 
-std::string DC::DCDriver::parseArrayLookup(std::string variable,std::string index)
+Value DC::DCDriver::parseArrayLookup(std::string variable,std::string index)
 {
    this->variables.assertArrayVariable(variable);
 
@@ -157,20 +166,35 @@ std::string DC::DCDriver::parseArrayLookup(std::string variable,std::string inde
    }
 
    std::string temp = this->variables.getIntTemp();
-   intInstructions.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::ADD,temp,index,variable));
 
-   return "@" + temp;
+   return Value("@" + temp,(IntInstrAbstr*)new IntInstr(IntInstrType::ADD,temp,index,variable));
 }
 
-void DC::DCDriver::halt()
+Value DC::DCDriver::parseArrayLookup(std::string variable, lint index)
 {
-   intInstructions.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::HALT));
-   //instructions.add_instruction(Instr::HALT);
+   return this->parseArrayLookup(variable, std::to_string(index));
+}
 
-   intInstructions.dbgPrint();
+void DC::DCDriver::halt(IntInstrBlock block)
+{
+   // Generate array addressess
+   IntInstrBlock arrayInit;
 
-   intInstructions.optimize();
-   this->instructions = intInstructions.translate(variables);
+   auto arrays = this->variables.getArrays();
+   for(std::string arr : arrays)
+   {
+      arrayInit.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SET,arr,VariableRegistry::toConst(variables.getIndex(arr)+1)));
+   }
+
+
+   block.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::HALT));
+
+   arrayInit.append(block);
+
+   arrayInit.dbgPrint();
+
+   arrayInit.optimize();
+   this->instructions = arrayInit.translate(variables);
    this->instructions.translateLabels();
 }
 

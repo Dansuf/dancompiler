@@ -45,6 +45,22 @@ WRITE       {
                return( token::WRITE );
             }
 
+IF          {
+               return( token::IF );
+            }
+
+THEN        {
+               return( token::THEN );
+            }
+
+ELSE        {
+               return( token::ELSE );
+            }
+
+ENDIF       {
+               return( token::ENDIF );
+            }
+
 ;           {
                return( token::SEMICOLON );
             }
@@ -81,11 +97,35 @@ WRITE       {
                return( token::RSBR );
             }
 
+\=           {
+               return( token::EQ );
+            }
+
+\<\>          {
+               return( token::NEQ );
+            }
+
+\<           {
+               return( token::LT );
+            }
+
+\>           {
+               return( token::GT );
+            }
+
+\<\=          {
+               return( token::LTE );
+            }
+
+\>\=          {
+               return( token::GTE );
+            }
+
 [_a-z]+     {
                yylval->build< std::string >( yytext );
                return( token::PID );
             }
-            
+
 [0-9]+      {
                yylval->build< lint >( std::stoll(yytext) );
                return( token::NUM );
