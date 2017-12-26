@@ -67,6 +67,18 @@ ENDIF       {
                return( token::ENDIF );
             }
 
+WHILE       {
+               return( token::WHILE );
+            }
+
+DO          {
+               return( token::DO );
+            }
+
+ENDWHILE    {
+               return( token::ENDWHILE );
+            }
+
 ;           {
                return( token::SEMICOLON );
             }

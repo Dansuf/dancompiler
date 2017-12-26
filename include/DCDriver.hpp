@@ -40,6 +40,7 @@ public:
    IntInstrBlock parseAssign(Value variable,Expression expr);
    IntInstrBlock parseIf(Condition cond, IntInstrBlock instructions);
    IntInstrBlock parseIfElse(Condition cond, IntInstrBlock instructions, IntInstrBlock elseInstructions);
+   IntInstrBlock parseWhile(Condition cond, IntInstrBlock instructions);
 
    Value parseVariable(std::string variable);
    Value parseArrayLookup(std::string variable,std::string index);

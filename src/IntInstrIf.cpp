@@ -167,7 +167,7 @@ InstructionRegistry IntInstrIf::translateGt(VariableRegistry& variables)
   if(this->elBlock.empty())
   {
     ir.addInstruction(Instr::JZERO,endif);
-    lint endifAddr = ir.append(this->block.translate(variables)) + 1;
+    endifAddr = ir.append(this->block.translate(variables)) + 1;
   }
   else
   {

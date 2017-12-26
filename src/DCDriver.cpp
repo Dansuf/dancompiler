@@ -6,6 +6,7 @@
 #include "DCDriver.hpp"
 #include "CompilerException.hpp"
 #include "IntInstrIf.hpp"
+#include "IntInstrWhile.hpp"
 
 DC::DCDriver::~DCDriver()
 {
@@ -176,6 +177,21 @@ IntInstrBlock DC::DCDriver::parseIfElse(Condition cond, IntInstrBlock instructio
    cond.getVal2().appendInitInstr(block);
 
    block.addInstr((IntInstrAbstr*) new IntInstrIf(cond.getVal1().get(),cond.getVal2().get(),cond.getCom(),instructions,elseInstructions));
+
+   return block;
+}
+
+IntInstrBlock DC::DCDriver::parseWhile(Condition cond, IntInstrBlock instructions)
+{
+   this->variables.assertLoadableVariable(cond.getVal1().get()); //Asserts most probably redundand but better be safe
+   this->variables.assertLoadableVariable(cond.getVal2().get());
+
+   IntInstrBlock block;
+
+   cond.getVal1().appendInitInstr(block);
+   cond.getVal2().appendInitInstr(block);
+
+   block.addInstr((IntInstrAbstr*) new IntInstrWhile(cond.getVal1().get(),cond.getVal2().get(),cond.getCom(),instructions,block));
 
    return block;
 }

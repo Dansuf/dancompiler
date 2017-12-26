@@ -87,6 +87,10 @@
 %token                  ELSE
 %token                  ENDIF
 
+%token                  WHILE
+%token                  DO
+%token                  ENDWHILE
+
 %token<lint>            NUM
 %token<std::string>     PID
 
@@ -105,11 +109,12 @@ commands:  commands command                                 { $1.append($2); $$ 
          | command                                          { $$ = $1; }
          ;
 
-command:   identifier SET expression                        { CATCH($$ = driver.parseAssign($1,$3),@1) }
+command:   identifier SET expression SEMICOLON              { CATCH($$ = driver.parseAssign($1,$3),@1) }
          | READ identifier SEMICOLON                        { CATCH($$ = driver.parseRead($2),@1) }
          | WRITE value SEMICOLON                            { CATCH($$ = driver.parseWrite($2),@1) }
          | IF condition THEN commands ENDIF                 { CATCH($$ = driver.parseIf($2,$4),@1) }
          | IF condition THEN commands ELSE commands ENDIF   { CATCH($$ = driver.parseIfElse($2,$4,$6),@1) }
+         | WHILE condition DO commands ENDWHILE             { CATCH($$ = driver.parseWhile($2,$4),@1) }
          ;
 
 expression: value                                           { $$ = Expression($1); }
