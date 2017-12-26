@@ -2,12 +2,18 @@ VAR
     a b
 BEGIN
     READ a;
+    WRITE a;
     WHILE a > 0 DO
+        (WRITE a;)
         b := a / 2;
+        (WRITE a;)
         b := 2 * b;
+        (WRITE a;)
         IF a > b THEN WRITE 1;
         ELSE WRITE 0;
         ENDIF
+        (WRITE a;)
         a := a / 2;
+        (WRITE a;)
     ENDWHILE
 END

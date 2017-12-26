@@ -54,7 +54,7 @@ lint IntInstr::addStoreInstruction(VariableRegistry& variables, InstructionRegis
 }
 
 void IntInstr::addMulInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument1, std::string argument2, std::string out)
-{ //TODO arrays
+{
   std::string tmp1 = variables.getAssemblerTemp();
   std::string tmp2 = variables.getAssemblerTemp();
 
@@ -130,13 +130,14 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   lint iff = variables.newLabel();
   lint end = variables.newLabel();
   lint divzero = variables.newLabel();
+  lint somelabel = variables.newLabel();
 
 
   IntInstr::addLoadInstruction(variables,instructions,argument2);
   instructions.addInstruction(Instr::JZERO,divzero);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::ZERO);
-  IntInstr::addStoreInstruction(variables,instructions,out);
+  if(argument1 != out) IntInstr::addStoreInstruction(variables,instructions,out);
   instructions.addInstruction(Instr::INC);
   IntInstr::addStoreInstruction(variables,instructions,multiple);
   IntInstr::addLoadInstruction(variables,instructions,argument1);
@@ -153,7 +154,18 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SUB,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::JZERO,endwhile);
   instructions.addInstruction(Instr::JUMP,whil);
-  lint endwhileAddr = instructions.addInstruction(Instr::LOAD,variables.getIndex(scaledDivisor));
+  lint endwhileAddr, somelabelAddr;
+  if(argument1 == out)
+  {
+    endwhileAddr = instructions.addInstruction(Instr::ZERO);
+    IntInstr::addStoreInstruction(variables,instructions,out);
+    somelabelAddr = instructions.addInstruction(Instr::LOAD,variables.getIndex(scaledDivisor));
+  }
+  else
+  {
+    endwhileAddr = instructions.addInstruction(Instr::LOAD,variables.getIndex(scaledDivisor));
+    somelabelAddr = endwhileAddr;
+  }
   IntInstr::addSubInstruction(variables,instructions,remainder);
   instructions.addInstruction(Instr::JZERO,iff);
   instructions.addInstruction(Instr::LOAD,variables.getIndex(scaledDivisor));
@@ -163,7 +175,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::STORE,variables.getIndex(multiple));
   instructions.addInstruction(Instr::JZERO,end);
-  lint ifAddr = instructions.addInstruction(Instr::JUMP,endwhile) + 1;
+  lint ifAddr = instructions.addInstruction(Instr::JUMP,somelabel) + 1;
   IntInstr::addLoadInstruction(variables,instructions,remainder);
   instructions.addInstruction(Instr::SUB,variables.getIndex(scaledDivisor));
   IntInstr::addStoreInstruction(variables,instructions,remainder);
@@ -177,7 +189,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::STORE,variables.getIndex(multiple));
   instructions.addInstruction(Instr::JZERO,end);
-  instructions.addInstruction(Instr::JUMP,endwhile);
+  instructions.addInstruction(Instr::JUMP,somelabel);
   lint divzeroAddr = instructions.addInstruction(Instr::ZERO);
   lint endAddr;
   if(resultNeeded) endAddr = IntInstr::addStoreInstruction(variables,instructions,out) + 1;
@@ -190,6 +202,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.setLabel(ifAddr,iff);
   instructions.setLabel(endAddr,end);
   instructions.setLabel(divzeroAddr,divzero);
+  instructions.setLabel(somelabelAddr,somelabel);
 
   variables.freeAssemblerTemps();
 }

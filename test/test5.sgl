@@ -3,8 +3,8 @@ VAR
 BEGIN
   READ a[0];
   READ b[0];
-  d[0] := a[0] / b[0]
-  c[0] := a[0] % b[0]
+  d[0] := a[0] / b[0];
+  c[0] := a[0] % b[0];
   WRITE d[0];
   WRITE c[0];
 END

@@ -8,3 +8,6 @@ labor4/interpreter-cln
 include/*.hh
 DCParser.output
 DCParser.tab.cc
+
+# Other
+testy

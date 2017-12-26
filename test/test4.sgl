@@ -4,7 +4,7 @@ BEGIN
   READ a[0];
   READ b[0];
   READ c[0];
-  a[0] := b[0] * c[0]
+  a[0] := b[0] * c[0];
   WRITE a[0];
   WRITE b[0];
   WRITE c[0];
