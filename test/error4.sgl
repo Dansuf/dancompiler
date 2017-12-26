@@ -1,0 +1,10 @@
+VAR
+ a b c
+BEGIN
+ WRITE a; (this test checks if error shows correct line when there are comments in between)
+ ( multi
+   line
+   comment
+ )
+ READ d;
+END

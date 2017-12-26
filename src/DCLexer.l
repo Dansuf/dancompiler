@@ -18,12 +18,18 @@ using token = DC::DCParser::token;
 %option noyywrap
 %option c++
 
+%x comment
+
 %%
 %{
             yylval = lval;
 %}
 
 [ \t]+      ;
+
+\(          {
+               BEGIN( comment );
+            }
 
 VAR         {
                return( token::VAR );
@@ -131,9 +137,19 @@ ENDIF       {
                return( token::NUM );
             }
 
+<comment>\) {
+               BEGIN( INITIAL );
+            }
+
 \n          {
                loc->lines();
             }
+
+<comment>\n {
+               loc->lines();
+            }
+
+<comment>.  ;
 
 .           {
                return( token::ERROR );
