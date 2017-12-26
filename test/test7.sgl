@@ -1,41 +1,41 @@
 VAR
- a b c d e f
+ a[100]
 BEGIN
-  READ a;
-  READ b;
-  READ c;
-  READ d;
-  READ e;
-  READ f;
+  READ a[0];
+  READ a[1];
+  READ a[2];
+  READ a[3];
+  READ a[4];
+  READ a[5];
 
-  IF a >= b THEN
-    WRITE a;
+  IF a[0] >= a[1] THEN
+    WRITE 0;
   ELSE
-    WRITE b;
+    WRITE 1;
   ENDIF
-  IF b <= c THEN
-    WRITE b;
+  IF a[1] <= a[2] THEN
+    WRITE 2;
   ELSE
-    WRITE c;
+    WRITE 3;
   ENDIF
-  IF c > d THEN
-    WRITE c;
+  IF a[2] > a[3] THEN
+    WRITE 4;
   ELSE
-    WRITE d;
+    WRITE 5;
   ENDIF
-  IF d < e THEN
-    WRITE d;
+  IF a[3] < a[4] THEN
+    WRITE 6;
   ELSE
-    WRITE e;
+    WRITE 7;
   ENDIF
-  IF e = f THEN
-    WRITE e;
+  IF a[4] = a[5] THEN
+    WRITE 8;
   ELSE
-    WRITE f;
+    WRITE 9;
   ENDIF
-  IF f <> a THEN
-    WRITE f;
+  IF a[5] <> a[0] THEN
+    WRITE 10;
   ELSE
-    WRITE a;
+    WRITE 11;
   ENDIF
 END
