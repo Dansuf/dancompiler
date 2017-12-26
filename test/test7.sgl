@@ -1,5 +1,5 @@
 VAR
-  a b c d e f
+ a b c d e f
 BEGIN
   READ a;
   READ b;
@@ -7,30 +7,35 @@ BEGIN
   READ d;
   READ e;
   READ f;
+
   IF a >= b THEN
     WRITE a;
+  ELSE
+    WRITE b;
   ENDIF
   IF b <= c THEN
     WRITE b;
+  ELSE
+    WRITE c;
   ENDIF
   IF c > d THEN
     WRITE c;
+  ELSE
+    WRITE d;
   ENDIF
   IF d < e THEN
     WRITE d;
+  ELSE
+    WRITE e;
   ENDIF
   IF e = f THEN
     WRITE e;
+  ELSE
+    WRITE f;
   ENDIF
   IF f <> a THEN
     WRITE f;
-  ENDIF
-
-  IF a <> b THEN
-    IF d < e THEN
-     IF b = c THEN
-      WRITE a;
-     ENDIF
-    ENDIF
+  ELSE
+    WRITE a;
   ENDIF
 END

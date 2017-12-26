@@ -39,6 +39,7 @@ public:
    IntInstrBlock parseWrite(Value variable);
    IntInstrBlock parseAssign(Value variable,Expression expr);
    IntInstrBlock parseIf(Condition cond, IntInstrBlock instructions);
+   IntInstrBlock parseIfElse(Condition cond, IntInstrBlock instructions, IntInstrBlock elseInstructions);
 
    Value parseVariable(std::string variable);
    Value parseArrayLookup(std::string variable,std::string index);

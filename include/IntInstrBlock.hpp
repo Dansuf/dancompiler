@@ -20,6 +20,8 @@ public:
 
   void append(IntInstrBlock block);
 
+  bool empty();
+
   void dbgPrint() override;
 
   InstructionRegistry translate(VariableRegistry& variables) override;

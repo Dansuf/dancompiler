@@ -12,6 +12,7 @@ class IntInstrIf : IntInstrAbstr
   Comparator comp;
 
   IntInstrBlock block;
+  IntInstrBlock elBlock;
 
   InstructionRegistry translateEq(VariableRegistry& variables);
   InstructionRegistry translateNeq(VariableRegistry& variables);
@@ -22,6 +23,7 @@ class IntInstrIf : IntInstrAbstr
 
 public:
   IntInstrIf(std::string val1, std::string val2, Comparator comp, IntInstrBlock block): val1(val1), val2(val2), comp(comp), block(block) {}
+  IntInstrIf(std::string val1, std::string val2, Comparator comp, IntInstrBlock block, IntInstrBlock elBlock): val1(val1), val2(val2), comp(comp), block(block), elBlock(elBlock) {}
 
   void dbgPrint() override;
 

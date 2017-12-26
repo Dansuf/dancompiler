@@ -165,6 +165,21 @@ IntInstrBlock DC::DCDriver::parseIf(Condition cond, IntInstrBlock instructions)
    return block;
 }
 
+IntInstrBlock DC::DCDriver::parseIfElse(Condition cond, IntInstrBlock instructions, IntInstrBlock elseInstructions)
+{
+   this->variables.assertLoadableVariable(cond.getVal1().get()); //Asserts most probably redundand but better be safe
+   this->variables.assertLoadableVariable(cond.getVal2().get());
+
+   IntInstrBlock block;
+
+   cond.getVal1().appendInitInstr(block);
+   cond.getVal2().appendInitInstr(block);
+
+   block.addInstr((IntInstrAbstr*) new IntInstrIf(cond.getVal1().get(),cond.getVal2().get(),cond.getCom(),instructions,elseInstructions));
+
+   return block;
+}
+
 Value DC::DCDriver::parseVariable(std::string variable)
 {
    this->variables.assertLoadableVariable(variable);

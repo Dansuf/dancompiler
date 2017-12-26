@@ -95,46 +95,46 @@
 
 %%
 
-program: VAR vdeclarations BEG commands END     { CATCH(driver.halt($4),@5) }
+program: VAR vdeclarations BEG commands END                 { CATCH(driver.halt($4),@5) }
 
-vdeclarations: vdeclarations PID                { CATCH(driver.declareVariable($2),@2) }
-         | vdeclarations PID LSBR NUM RSBR      { CATCH(driver.declareArray($2,$4),@2) }
+vdeclarations: vdeclarations PID                            { CATCH(driver.declareVariable($2),@2) }
+         | vdeclarations PID LSBR NUM RSBR                  { CATCH(driver.declareArray($2,$4),@2) }
          |
          ;
-commands:  commands command                     { $1.append($2); $$ = $1; }
-         | command                              { $$ = $1; }
+commands:  commands command                                 { $1.append($2); $$ = $1; }
+         | command                                          { $$ = $1; }
          ;
 
-command:   identifier SET expression            { CATCH($$ = driver.parseAssign($1,$3),@1) }
-         | READ identifier SEMICOLON            { CATCH($$ = driver.parseRead($2),@1) }
-         | WRITE identifier SEMICOLON           { CATCH($$ = driver.parseWrite($2),@1) }
-         | IF condition THEN commands ENDIF     { CATCH($$ = driver.parseIf($2,$4),@1)}
-         | IF condition THEN commands ELSE commands ENDIF { }
+command:   identifier SET expression                        { CATCH($$ = driver.parseAssign($1,$3),@1) }
+         | READ identifier SEMICOLON                        { CATCH($$ = driver.parseRead($2),@1) }
+         | WRITE identifier SEMICOLON                       { CATCH($$ = driver.parseWrite($2),@1) /*TODO WRITE value*/ }
+         | IF condition THEN commands ENDIF                 { CATCH($$ = driver.parseIf($2,$4),@1) }
+         | IF condition THEN commands ELSE commands ENDIF   { CATCH($$ = driver.parseIfElse($2,$4,$6),@1) }
          ;
 
-expression: value                               { $$ = Expression($1); }
-         | value PLUS value                     { $$ = Expression($1,Operator::PLUS,$3); }
-         | value MINUS value                    { $$ = Expression($1,Operator::MINUS,$3); }
-         | value STAR value                     { $$ = Expression($1,Operator::STAR,$3); }
-         | value SLASH value                    { $$ = Expression($1,Operator::SLASH,$3); }
-         | value PERCENT value                  { $$ = Expression($1,Operator::PERCENT,$3); }
+expression: value                                           { $$ = Expression($1); }
+         | value PLUS value                                 { $$ = Expression($1,Operator::PLUS,$3); }
+         | value MINUS value                                { $$ = Expression($1,Operator::MINUS,$3); }
+         | value STAR value                                 { $$ = Expression($1,Operator::STAR,$3); }
+         | value SLASH value                                { $$ = Expression($1,Operator::SLASH,$3); }
+         | value PERCENT value                              { $$ = Expression($1,Operator::PERCENT,$3); }
          ;
 
-condition: value EQ value                       { $$ = Condition($1,Comparator::EQ,$3); }
-         | value NEQ value                      { $$ = Condition($1,Comparator::NEQ,$3); }
-         | value LT value                       { $$ = Condition($1,Comparator::LT,$3); }
-         | value GT value                       { $$ = Condition($1,Comparator::GT,$3); }
-         | value LTE value                      { $$ = Condition($1,Comparator::LTE,$3); }
-         | value GTE value                      { $$ = Condition($1,Comparator::GTE,$3); }
+condition: value EQ value                                   { $$ = Condition($1,Comparator::EQ,$3); }
+         | value NEQ value                                  { $$ = Condition($1,Comparator::NEQ,$3); }
+         | value LT value                                   { $$ = Condition($1,Comparator::LT,$3); }
+         | value GT value                                   { $$ = Condition($1,Comparator::GT,$3); }
+         | value LTE value                                  { $$ = Condition($1,Comparator::LTE,$3); }
+         | value GTE value                                  { $$ = Condition($1,Comparator::GTE,$3); }
          ;
 
-value:      NUM                                 { $$ = Value($1); }
-         | identifier                           { $$ = $1; }
+value:      NUM                                             { $$ = Value($1); }
+         | identifier                                       { $$ = $1; }
          ;
 
-identifier: PID                                 { CATCH($$ = driver.parseVariable($1),@1) }
-         | PID LSBR PID RSBR                    { CATCH($$ = driver.parseArrayLookup($1,$3),@1) }
-         | PID LSBR NUM RSBR                    { CATCH($$ = driver.parseArrayLookup($1,$3),@1) }
+identifier: PID                                             { CATCH($$ = driver.parseVariable($1),@1) }
+         | PID LSBR PID RSBR                                { CATCH($$ = driver.parseArrayLookup($1,$3),@1) }
+         | PID LSBR NUM RSBR                                { CATCH($$ = driver.parseArrayLookup($1,$3),@1) }
          ;
 
 %%

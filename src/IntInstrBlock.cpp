@@ -19,6 +19,11 @@ void IntInstrBlock::append(IntInstrBlock block)
   this->instructions.insert(this->instructions.end(),instructions.begin(),instructions.end());
 }
 
+bool IntInstrBlock::empty()
+{
+  return this->instructions.empty();
+}
+
 void IntInstrBlock::dbgPrint()
 {
   for(auto instr : this->instructions)
