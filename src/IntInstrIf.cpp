@@ -3,6 +3,34 @@
 
 #include "IntInstrIf.hpp"
 
+IntInstrIf::IntInstrIf(std::string val1, std::string val2, Comparator comp, IntInstrBlock valInitBlock, IntInstrBlock block): IntInstrIf(val1, val2, comp,valInitBlock, block, IntInstrBlock())
+{
+
+}
+
+IntInstrIf::IntInstrIf(std::string val1, std::string val2, Comparator comp, IntInstrBlock valInitBlock, IntInstrBlock block, IntInstrBlock elBlock) : val1(val1), val2(val2), comp(comp), block(block), elBlock(elBlock)
+{
+  switch(this->comp)
+  {
+    case Comparator::EQ:
+    case Comparator::NEQ:
+      this->subBlock = valInitBlock;
+      this->subBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val2,this->val1));
+      this->revSubBlock = valInitBlock;
+      this->revSubBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val1,this->val2));
+      break;
+    case Comparator::LT:
+    case Comparator::GTE:
+      this->subBlock = valInitBlock;
+      this->subBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val2,this->val1));
+      break;
+    case Comparator::GT:
+    case Comparator::LTE:
+      this->subBlock = valInitBlock;
+      this->subBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val1,this->val2));
+      break;
+  }
+}
 
 void IntInstrIf::dbgPrint()
 {
@@ -53,17 +81,12 @@ InstructionRegistry IntInstrIf::translateEq(VariableRegistry& variables)
   if(!this->elBlock.empty()) cmds2 = variables.newLabel();
   lint endif = variables.newLabel();
 
-  IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val2,this->val1);
-  IntInstr revSub = IntInstr(IntInstrType::SUB,"",this->val1,this->val2);
-  sub.optimize();
-  revSub.optimize();
-
   lint endifAddr, cmds2Addr;
 
-  InstructionRegistry ir = sub.translate(variables);
+  InstructionRegistry ir = this->subBlock.translate(variables);
   ir.addInstruction(Instr::JZERO,next);
   lint nextAddr = ir.addInstruction(Instr::JUMP,this->elBlock.empty() ? endif : cmds2)+1;
-  ir.append(revSub.translate(variables));
+  ir.append(this->revSubBlock.translate(variables));
   ir.addInstruction(Instr::JZERO,cmds1);
   lint cmds1Addr = ir.addInstruction(Instr::JUMP,this->elBlock.empty() ? endif : cmds2) + 1;
   if(this->elBlock.empty())
@@ -94,17 +117,12 @@ InstructionRegistry IntInstrIf::translateNeq(VariableRegistry& variables)
   if(!this->elBlock.empty()) cmds2 = variables.newLabel();
   lint endif = variables.newLabel();
 
-  IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val2,this->val1);
-  IntInstr revSub = IntInstr(IntInstrType::SUB,"",this->val1,this->val2);
-  sub.optimize();
-  revSub.optimize();
-
   lint endifAddr, cmds2Addr;
 
-  InstructionRegistry ir = sub.translate(variables);
+  InstructionRegistry ir = this->subBlock.translate(variables);
   ir.addInstruction(Instr::JZERO,next);
   lint nextAddr = ir.addInstruction(Instr::JUMP,cmds1) + 1;
-  ir.append(revSub.translate(variables));
+  ir.append(this->revSubBlock.translate(variables));
   lint cmds1Addr = ir.addInstruction(Instr::JZERO,this->elBlock.empty() ? endif : cmds2) + 1;
   if(this->elBlock.empty())
   {
@@ -131,10 +149,7 @@ InstructionRegistry IntInstrIf::translateLt(VariableRegistry& variables)
   lint cmds2;
   if(!this->elBlock.empty()) cmds2 = variables.newLabel();
 
-  IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val2,this->val1);
-  sub.optimize();
-
-  InstructionRegistry ir = sub.translate(variables);
+  InstructionRegistry ir = this->subBlock.translate(variables);
 
   lint cmds2Addr, endifAddr;
 
@@ -163,10 +178,7 @@ InstructionRegistry IntInstrIf::translateGt(VariableRegistry& variables)
   lint cmds2;
   if(!this->elBlock.empty()) cmds2 = variables.newLabel();
 
-  IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val1,this->val2);
-  sub.optimize();
-
-  InstructionRegistry ir = sub.translate(variables);
+  InstructionRegistry ir = this->subBlock.translate(variables);
 
   lint cmds2Addr, endifAddr;
 
@@ -194,10 +206,7 @@ InstructionRegistry IntInstrIf::translateLte(VariableRegistry& variables)
   lint cmds1 = variables.newLabel();
   lint endif = variables.newLabel();
 
-  IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val1,this->val2);
-  sub.optimize();
-
-  InstructionRegistry ir = sub.translate(variables);
+  InstructionRegistry ir = this->subBlock.translate(variables);
   ir.addInstruction(Instr::JZERO,cmds1);
   ir.append(this->elBlock.translate(variables));
   lint cmds1Addr = ir.addInstruction(Instr::JUMP,endif) + 1;
@@ -214,10 +223,7 @@ InstructionRegistry IntInstrIf::translateGte(VariableRegistry& variables)
   lint cmds1 = variables.newLabel();
   lint endif = variables.newLabel();
 
-  IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val2,this->val1);
-  sub.optimize();
-
-  InstructionRegistry ir = sub.translate(variables);
+  InstructionRegistry ir = this->subBlock.translate(variables);
   ir.addInstruction(Instr::JZERO,cmds1);
   ir.append(this->elBlock.translate(variables));
   lint cmds1Addr = ir.addInstruction(Instr::JUMP,endif) + 1;
@@ -256,6 +262,8 @@ InstructionRegistry IntInstrIf::translate(VariableRegistry& variables)
 
 void IntInstrIf::optimize()
 {
+  this->subBlock.optimize();
+  this->revSubBlock.optimize();
   this->block.optimize();
   this->elBlock.optimize();
 }

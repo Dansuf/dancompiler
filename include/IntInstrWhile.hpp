@@ -6,11 +6,11 @@
 
 class IntInstrWhile : IntInstrAbstr
 {
+  IntInstrBlock subBlock, revSubBlock;
+  
   std::string val1;
   std::string val2;
   Comparator comp;
-
-  IntInstrBlock valInitBlock;
 
   IntInstrBlock block;
 
@@ -22,7 +22,7 @@ class IntInstrWhile : IntInstrAbstr
   InstructionRegistry translateGte(VariableRegistry& variables);
 
 public:
-  IntInstrWhile(std::string val1, std::string val2, Comparator comp, IntInstrBlock block, IntInstrBlock valInitBlock): val1(val1), val2(val2), comp(comp), block(block), valInitBlock(valInitBlock) {}
+  IntInstrWhile(std::string val1, std::string val2, Comparator comp, IntInstrBlock block, IntInstrBlock valInitBlock);
 
   void dbgPrint() override;
 

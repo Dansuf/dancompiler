@@ -7,12 +7,12 @@
 
 class IntInstrIf : IntInstrAbstr
 {
-  std::string val1;
-  std::string val2;
+  IntInstrBlock subBlock, revSubBlock;
+
+  std::string val1, val2;
   Comparator comp;
 
-  IntInstrBlock block;
-  IntInstrBlock elBlock;
+  IntInstrBlock block, elBlock;
 
   InstructionRegistry translateEq(VariableRegistry& variables);
   InstructionRegistry translateNeq(VariableRegistry& variables);
@@ -22,8 +22,8 @@ class IntInstrIf : IntInstrAbstr
   InstructionRegistry translateGte(VariableRegistry& variables);
 
 public:
-  IntInstrIf(std::string val1, std::string val2, Comparator comp, IntInstrBlock block): val1(val1), val2(val2), comp(comp), block(block) {}
-  IntInstrIf(std::string val1, std::string val2, Comparator comp, IntInstrBlock block, IntInstrBlock elBlock): val1(val1), val2(val2), comp(comp), block(block), elBlock(elBlock) {}
+  IntInstrIf(std::string val1, std::string val2, Comparator comp, IntInstrBlock valInitBlock, IntInstrBlock block);
+  IntInstrIf(std::string val1, std::string val2, Comparator comp, IntInstrBlock valInitBlock, IntInstrBlock block, IntInstrBlock elBlock);
 
   void dbgPrint() override;
 

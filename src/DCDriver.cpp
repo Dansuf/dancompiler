@@ -156,12 +156,12 @@ IntInstrBlock DC::DCDriver::parseIf(Condition cond, IntInstrBlock instructions)
    this->variables.assertLoadableVariable(cond.getVal1().get()); //Asserts most probably redundand but better be safe
    this->variables.assertLoadableVariable(cond.getVal2().get());
 
-   IntInstrBlock block;
+   IntInstrBlock initValBlock, block;
 
-   cond.getVal1().appendInitInstr(block);
-   cond.getVal2().appendInitInstr(block);
+   cond.getVal1().appendInitInstr(initValBlock);
+   cond.getVal2().appendInitInstr(initValBlock);
 
-   block.addInstr((IntInstrAbstr*) new IntInstrIf(cond.getVal1().get(),cond.getVal2().get(),cond.getCom(),instructions));
+   block.addInstr((IntInstrAbstr*) new IntInstrIf(cond.getVal1().get(),cond.getVal2().get(),cond.getCom(), initValBlock, instructions));
 
    return block;
 }
@@ -171,12 +171,12 @@ IntInstrBlock DC::DCDriver::parseIfElse(Condition cond, IntInstrBlock instructio
    this->variables.assertLoadableVariable(cond.getVal1().get()); //Asserts most probably redundand but better be safe
    this->variables.assertLoadableVariable(cond.getVal2().get());
 
-   IntInstrBlock block;
+   IntInstrBlock initValBlock, block;
 
-   cond.getVal1().appendInitInstr(block);
-   cond.getVal2().appendInitInstr(block);
+   cond.getVal1().appendInitInstr(initValBlock);
+   cond.getVal2().appendInitInstr(initValBlock);
 
-   block.addInstr((IntInstrAbstr*) new IntInstrIf(cond.getVal1().get(),cond.getVal2().get(),cond.getCom(),instructions,elseInstructions));
+   block.addInstr((IntInstrAbstr*) new IntInstrIf(cond.getVal1().get(),cond.getVal2().get(),cond.getCom(), initValBlock, instructions,elseInstructions));
 
    return block;
 }
