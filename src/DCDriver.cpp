@@ -7,6 +7,7 @@
 #include "CompilerException.hpp"
 #include "IntInstrIf.hpp"
 #include "IntInstrWhile.hpp"
+#include "IntInstrFor.hpp"
 
 DC::DCDriver::~DCDriver()
 {
@@ -68,6 +69,11 @@ void DC::DCDriver::declareVariable(std::string variable)
 void DC::DCDriver::declareArray(std::string variable, lint size)
 {
    this->variables.addArrayVariable(variable,size);
+}
+
+void DC::DCDriver::declareIterator(std::string variable)
+{
+   this->variables.setIterator(variable);
 }
 
 IntInstrBlock DC::DCDriver::parseRead(Value variable)
@@ -185,12 +191,29 @@ IntInstrBlock DC::DCDriver::parseWhile(Condition cond, IntInstrBlock instruction
    this->variables.assertLoadableVariable(cond.getVal1().get()); //Asserts most probably redundand but better be safe
    this->variables.assertLoadableVariable(cond.getVal2().get());
 
-   IntInstrBlock block;
+   IntInstrBlock block; // TODO move to initvalBlock??
 
    cond.getVal1().appendInitInstr(block);
    cond.getVal2().appendInitInstr(block);
 
    block.addInstr((IntInstrAbstr*) new IntInstrWhile(cond.getVal1().get(),cond.getVal2().get(),cond.getCom(),instructions,block));
+
+   return block;
+}
+
+IntInstrBlock DC::DCDriver::parseFor(std::string iterator, Value val1, Value val2, bool downTo, IntInstrBlock instructions)
+{
+   this->variables.assertLoadableVariable(val1.get());
+   this->variables.assertLoadableVariable(val2.get());
+
+   IntInstrBlock initValBlock, block;
+
+   val1.appendInitInstr(initValBlock);
+   val2.appendInitInstr(initValBlock);
+
+   block.addInstr((IntInstrAbstr*) new IntInstrFor(iterator,val1.get(),val2.get(),downTo,instructions,initValBlock));
+
+   this->variables.unsetIterator(iterator);
 
    return block;
 }

@@ -54,7 +54,7 @@
 %type<Value>            value
 %type<Expression>       expression
 %type<Condition>        condition
-%type<IntInstrBlock>   command
+%type<IntInstrBlock>    command
 %type<IntInstrBlock>    commands
 
 %token                  VAR
@@ -91,6 +91,12 @@
 %token                  DO
 %token                  ENDWHILE
 
+%token                  FOR
+%token                  FROM
+%token                  TO
+%token                  DOWNTO
+%token                  ENDFOR
+
 %token<lint>            NUM
 %token<std::string>     PID
 
@@ -110,11 +116,15 @@ commands:  commands command                                 { $1.append($2); $$ 
          ;
 
 command:   identifier SET expression SEMICOLON              { CATCH($$ = driver.parseAssign($1,$3),@1) }
-         | READ identifier SEMICOLON                        { CATCH($$ = driver.parseRead($2),@1) }
-         | WRITE value SEMICOLON                            { CATCH($$ = driver.parseWrite($2),@1) }
          | IF condition THEN commands ENDIF                 { CATCH($$ = driver.parseIf($2,$4),@1) }
          | IF condition THEN commands ELSE commands ENDIF   { CATCH($$ = driver.parseIfElse($2,$4,$6),@1) }
+         | FOR PID FROM value TO                            { CATCH(driver.declareIterator($2),@2) }
+            value DO commands ENDFOR                        { CATCH($$ = driver.parseFor($2,$4,$7,false,$9),@1) }
+         | FOR PID FROM value DOWNTO                        { CATCH(driver.declareIterator($2),@2) }
+            value DO commands ENDFOR                        { CATCH($$ = driver.parseFor($2,$4,$7,true,$9),@1) }
          | WHILE condition DO commands ENDWHILE             { CATCH($$ = driver.parseWhile($2,$4),@1) }
+         | READ identifier SEMICOLON                        { CATCH($$ = driver.parseRead($2),@1) }
+         | WRITE value SEMICOLON                            { CATCH($$ = driver.parseWrite($2),@1) }
          ;
 
 expression: value                                           { $$ = Expression($1); }

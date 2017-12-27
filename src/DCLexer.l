@@ -79,6 +79,26 @@ ENDWHILE    {
                return( token::ENDWHILE );
             }
 
+FOR         {
+               return( token::FOR );
+            }
+
+FROM        {
+               return( token::FROM );
+            }
+
+TO          {
+               return( token::TO );
+            }
+
+DOWNTO      {
+               return( token::DOWNTO );
+            }
+
+ENDFOR      {
+               return( token::ENDFOR );
+            }
+
 ;           {
                return( token::SEMICOLON );
             }

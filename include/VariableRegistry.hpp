@@ -12,14 +12,19 @@ class VariableRegistry
 {
   lint lastFreeIndex = INT_TEMPS + ASSEMBLER_TEMPS;
   std::unordered_map<std::string,lint> indexes;
-  //TODO store info if initialized, iterator etc.
+  //TODO store info if initialized
 
   std::set<std::string> arrays;
+
+  std::set<std::string> iterators;
+  std::set<std::string> activeIterators;
 
   lint lastIntTempAddr = 0;
   lint lastAssemblerTempAddr = INT_TEMPS;
 
   lint lastLabelId = 0;
+
+  lint lastFreeCounter = 0;
 
 public:
   VariableRegistry();
@@ -34,6 +39,11 @@ public:
 
   std::string getAssemblerTemp();
   void freeAssemblerTemps();
+
+  lint setIterator(std::string name);
+  void unsetIterator(std::string name);
+
+  lint getForCounter();
 
   lint newLabel();
 

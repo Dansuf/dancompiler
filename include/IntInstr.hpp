@@ -28,13 +28,14 @@ class IntInstr : IntInstrAbstr
   std::string val2;
   std::string val3;
 
+public:
   static void addLoadInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable);
   static void addAddInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable);
   static void addSubInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable);
   static lint addStoreInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable);
   static void addMulInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable1, std::string variable2, std::string out);
   static void addDivInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable1, std::string variable2, std::string out, std::string remainder);
-public:
+
 
 
   IntInstr(IntInstrType type,std::string val1,std::string val2,std::string val3): type(type), val1(val1), val2(val2), val3(val3){};

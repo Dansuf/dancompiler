@@ -89,6 +89,54 @@ void VariableRegistry::freeAssemblerTemps()
    lastAssemblerTempAddr = INT_TEMPS;
 }
 
+/**
+  * @return index of added variable
+ **/
+lint VariableRegistry::setIterator(std::string name)
+{
+   lint index;
+   if(this->activeIterators.count(name) > 0)
+   {
+      throw CompilerException("Redeclaration of iterator '" + name + "'!'");
+   }
+
+   if(this->indexes.count(name) > 0)
+   {
+      if(this->iterators.count(name) == 0)
+      {
+         throw CompilerException("Redeclaration of variable '" + name + "'!");
+      }
+      else
+      {
+         index = this->getIndex(name);
+      }
+   }
+   else
+   {
+      this->indexes.insert(std::make_pair(name,lastFreeIndex));
+      this->iterators.insert(name);
+      index = lastFreeIndex++;
+   }
+
+   this->activeIterators.insert(name);
+
+   return index;
+}
+
+void VariableRegistry::unsetIterator(std::string name)
+{
+   this->activeIterators.erase(name);
+}
+
+lint VariableRegistry::getForCounter()
+{
+   if(this->indexes.count("CTR"+this->lastFreeCounter) > 0)
+   {
+      throw new CompilerException("Internal Error: Trying to declare already declared counter.");
+   }
+   return this->addVariable("CTR"+this->lastFreeCounter++);
+}
+
 lint VariableRegistry::newLabel()
 {
    return --this->lastLabelId;
@@ -98,7 +146,7 @@ void VariableRegistry::assertLoadableVariable(std::string name)
 {
    if(VariableRegistry::isConst(name)) return;
    if(VariableRegistry::isPointer(name)) name = VariableRegistry::stripPointer(name);
-   if(this->indexes.count(name) == 0)
+   if(this->indexes.count(name) == 0 || (this->iterators.count(name) > 0 && this->activeIterators.count(name) == 0))
    {
       throw CompilerException("Trying to access undeclared variable '"+name+"'");
    }
@@ -107,9 +155,13 @@ void VariableRegistry::assertLoadableVariable(std::string name)
 void VariableRegistry::assertStorableVariable(std::string name)
 {
    if(VariableRegistry::isPointer(name)) name = VariableRegistry::stripPointer(name);
-   if(this->indexes.count(name) == 0)
+   if(this->indexes.count(name) == 0 || (this->iterators.count(name) > 0 && this->activeIterators.count(name) == 0))
    {
       throw CompilerException("Trying to write to undeclared variable '"+name+"'");
+   }
+   if(this->activeIterators.count(name) > 0)
+   {
+      throw CompilerException("Trying to modify iterator '"+name+"'");
    }
 }
 

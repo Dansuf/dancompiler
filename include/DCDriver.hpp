@@ -34,6 +34,7 @@ public:
 
    void declareVariable(std::string variable);
    void declareArray(std::string variable, lint size);
+   void declareIterator(std::string variable);
 
    IntInstrBlock parseRead(Value variable);
    IntInstrBlock parseWrite(Value variable);
@@ -41,6 +42,7 @@ public:
    IntInstrBlock parseIf(Condition cond, IntInstrBlock instructions);
    IntInstrBlock parseIfElse(Condition cond, IntInstrBlock instructions, IntInstrBlock elseInstructions);
    IntInstrBlock parseWhile(Condition cond, IntInstrBlock instructions);
+   IntInstrBlock parseFor(std::string iterator, Value val1, Value val2, bool downTo, IntInstrBlock instructions);
 
    Value parseVariable(std::string variable);
    Value parseArrayLookup(std::string variable,std::string index);
