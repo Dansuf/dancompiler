@@ -130,11 +130,13 @@ void VariableRegistry::unsetIterator(std::string name)
 
 lint VariableRegistry::getForCounter()
 {
-   if(this->indexes.count("CTR"+this->lastFreeCounter) > 0)
+   std::string name = "CTR"+std::to_string(this->lastFreeCounter);
+   this->lastFreeCounter++;
+   if(this->indexes.count(name) > 0)
    {
-      throw new CompilerException("Internal Error: Trying to declare already declared counter.");
+      throw CompilerException("Internal Error: Trying to declare already declared counter.");
    }
-   return this->addVariable("CTR"+this->lastFreeCounter++);
+   return this->addVariable(name);
 }
 
 lint VariableRegistry::newLabel()
