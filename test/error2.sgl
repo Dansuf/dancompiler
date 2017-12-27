@@ -1,5 +1,0 @@
-VAR
-  a b c d e
-BEGIN
-  READ x;
-END

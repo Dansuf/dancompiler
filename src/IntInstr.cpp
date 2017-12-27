@@ -322,7 +322,7 @@ void IntInstr::optimize()
     case IntInstrType::MUL:
       if(VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3))
       {
-        this->type = IntInstrType::MUL;
+        this->type = IntInstrType::SET;
         this->val2 = VariableRegistry::toConst(VariableRegistry::getConstVal(this->val2) * VariableRegistry::getConstVal(this->val3));
         this->val3 = "";
       }
@@ -331,8 +331,23 @@ void IntInstr::optimize()
       if(VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3))
       {
         this->type = IntInstrType::SET;
-        this->val2 = VariableRegistry::toConst(VariableRegistry::getConstVal(this->val2) / VariableRegistry::getConstVal(this->val3));
-        this->val3 = "";
+        if(VariableRegistry::getConstVal(this->val3) == 0) this->val2 = VariableRegistry::toConst(0);
+        else
+        {
+          this->val2 = VariableRegistry::toConst(VariableRegistry::getConstVal(this->val2) / VariableRegistry::getConstVal(this->val3));
+          this->val3 = "";
+        }
+      }
+    case IntInstrType::MOD:
+      if(VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3))
+      {
+        this->type = IntInstrType::SET;
+        if(VariableRegistry::getConstVal(this->val3) == 0) this->val2 = VariableRegistry::toConst(0);
+        else
+        {
+          this->val2 = VariableRegistry::toConst(VariableRegistry::getConstVal(this->val2) % VariableRegistry::getConstVal(this->val3));
+          this->val3 = "";
+        }
       }
       break;
   }
