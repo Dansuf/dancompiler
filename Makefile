@@ -19,7 +19,7 @@ CLEANLIST =  DCParser.output DCParser.tab.cc $(INCLUDE)/bin.tab.hh $(INCLUDE)/DC
 .PHONY: all
 all: parser lexer $(OBJS) dc
 
-dc: $(FILES)
+dc: $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(EXE) -I$(INCLUDE) $(OBJS) $(BIN)/parser.o $(BIN)/lexer.o $(LIBS)
 
 $(BIN)/%.o: $(SOURCE)/%.cpp
