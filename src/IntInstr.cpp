@@ -248,7 +248,7 @@ InstructionRegistry IntInstr::translate(VariableRegistry& variables)
       break;
     case IntInstrType::SET:
       IntInstr::addLoadInstruction(variables,out,this->val2);
-      IntInstr::addStoreInstruction(variables,out,this->val1);
+      if(!this->val1.empty()) IntInstr::addStoreInstruction(variables,out,this->val1);
       break;
     case IntInstrType::ADD:
       if(!VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3))

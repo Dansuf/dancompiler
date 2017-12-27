@@ -55,6 +55,8 @@ InstructionRegistry IntInstrIf::translateEq(VariableRegistry& variables)
 
   IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val2,this->val1);
   IntInstr revSub = IntInstr(IntInstrType::SUB,"",this->val1,this->val2);
+  sub.optimize();
+  revSub.optimize();
 
   lint endifAddr, cmds2Addr;
 
@@ -94,6 +96,8 @@ InstructionRegistry IntInstrIf::translateNeq(VariableRegistry& variables)
 
   IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val2,this->val1);
   IntInstr revSub = IntInstr(IntInstrType::SUB,"",this->val1,this->val2);
+  sub.optimize();
+  revSub.optimize();
 
   lint endifAddr, cmds2Addr;
 
@@ -128,6 +132,7 @@ InstructionRegistry IntInstrIf::translateLt(VariableRegistry& variables)
   if(!this->elBlock.empty()) cmds2 = variables.newLabel();
 
   IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val2,this->val1);
+  sub.optimize();
 
   InstructionRegistry ir = sub.translate(variables);
 
@@ -159,6 +164,7 @@ InstructionRegistry IntInstrIf::translateGt(VariableRegistry& variables)
   if(!this->elBlock.empty()) cmds2 = variables.newLabel();
 
   IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val1,this->val2);
+  sub.optimize();
 
   InstructionRegistry ir = sub.translate(variables);
 
@@ -189,6 +195,7 @@ InstructionRegistry IntInstrIf::translateLte(VariableRegistry& variables)
   lint endif = variables.newLabel();
 
   IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val1,this->val2);
+  sub.optimize();
 
   InstructionRegistry ir = sub.translate(variables);
   ir.addInstruction(Instr::JZERO,cmds1);
@@ -208,6 +215,7 @@ InstructionRegistry IntInstrIf::translateGte(VariableRegistry& variables)
   lint endif = variables.newLabel();
 
   IntInstr sub = IntInstr(IntInstrType::SUB,"",this->val2,this->val1);
+  sub.optimize();
 
   InstructionRegistry ir = sub.translate(variables);
   ir.addInstruction(Instr::JZERO,cmds1);

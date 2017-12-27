@@ -238,7 +238,7 @@ void DC::DCDriver::halt(IntInstrBlock block)
 
    arrayInit.append(block);
 
-   arrayInit.dbgPrint();
+   //arrayInit.dbgPrint();
 
    arrayInit.optimize();
    this->instructions = arrayInit.translate(variables);

@@ -43,7 +43,7 @@
                         catch(CompilerException e) \
                         { \
                            error(loc,e.what()); \
-                           return 0; \
+                           return -1; \
                         }
 }
 
