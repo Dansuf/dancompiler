@@ -31,12 +31,12 @@ int main(const int argc, const char **argv)
       if( std::strncmp( argv[ 1 ], "-h", 2 ) == 0 )
       {
          printUsage(argv[0]);
-         return( EXIT_SUCCESS );
+         return( EXIT_FAILURE );
       }
       else
       {
-         driver.parse( argv[1] );
-         driver.print( std::cout ) << "\n";
+         driver.parse(argv[1]);
+         driver.print(std::cout) << "\n";
       }
    }
    else

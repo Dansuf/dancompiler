@@ -25,7 +25,6 @@ void DC::DCDriver::parse( const char * const filename )
        exit( EXIT_FAILURE );
    }
    parseHelper(inFile);
-   return;
 }
 
 
@@ -56,9 +55,9 @@ void DC::DCDriver::parseHelper( std::istream &stream )
    const int accept( 0 );
    if( parser->parse() != accept )
    {
-      std::cerr << "Parse failed!!\n";
+      std::cerr << "Compilation failed!!\n";
+      exit( EXIT_FAILURE );
    }
-   return;
 }
 
 void DC::DCDriver::declareVariable(std::string variable)
