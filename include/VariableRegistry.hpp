@@ -14,7 +14,7 @@ class VariableRegistry
   std::unordered_map<std::string,lint> indexes;
   //TODO store info if initialized
 
-  std::set<std::string> arrays;
+  std::unordered_map<std::string,lint> arrays;
 
   std::set<std::string> iterators;
   std::set<std::string> activeIterators;
@@ -49,7 +49,7 @@ public:
 
   void assertLoadableVariable(std::string name);
   void assertStorableVariable(std::string name);
-  void assertArrayVariable(std::string name);
+  void assertArrayVariable(std::string name, std::string index);
 
   static bool isPointer(std::string variable);
   static bool isConst(std::string variable);
@@ -59,5 +59,5 @@ public:
 
   static std::string toConst(lint val);
 
-  std::set<std::string> getArrays();
+  std::unordered_map<std::string,lint> getArrays();
 };

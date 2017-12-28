@@ -227,7 +227,7 @@ Value DC::DCDriver::parseVariable(std::string variable)
 
 Value DC::DCDriver::parseArrayLookup(std::string variable,std::string index)
 {
-   this->variables.assertArrayVariable(variable);
+   this->variables.assertArrayVariable(variable, index);
 
    if(!VariableRegistry::isConst(index))
    {
@@ -250,9 +250,9 @@ void DC::DCDriver::halt(IntInstrBlock block)
    IntInstrBlock arrayInit;
 
    auto arrays = this->variables.getArrays();
-   for(std::string arr : arrays)
+   for(auto arr : arrays)
    {
-      arrayInit.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SET,arr,VariableRegistry::toConst(variables.getIndex(arr)+1)));
+      arrayInit.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SET,arr.first,VariableRegistry::toConst(variables.getIndex(arr.first)+1)));
    }
 
 

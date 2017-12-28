@@ -38,7 +38,7 @@ lint VariableRegistry::addArrayVariable(std::string name, lint size)
       throw CompilerException("Redeclaration of variable '" + name + "'!");
    }
    this->indexes.insert(std::make_pair(name,lastFreeIndex));
-   this->arrays.insert(name);
+   this->arrays.insert(std::make_pair(name,size));
 
    lint currIndex = lastFreeIndex;
    lastFreeIndex += size + 1;
@@ -152,6 +152,11 @@ void VariableRegistry::assertLoadableVariable(std::string name)
    {
       throw CompilerException("Trying to access undeclared variable '"+name+"'");
    }
+
+   if(this->arrays.count(name) > 0)
+   {
+      throw CompilerException("Trying to access array variable '"+name+"' as a normal variable.");
+   }
 }
 
 void VariableRegistry::assertStorableVariable(std::string name)
@@ -167,12 +172,25 @@ void VariableRegistry::assertStorableVariable(std::string name)
    }
 }
 
-void VariableRegistry::assertArrayVariable(std::string name)
+void VariableRegistry::assertArrayVariable(std::string name, std::string index)
 {
-   this->assertLoadableVariable(name);
+   if(this->indexes.count(name) == 0 || (this->iterators.count(name) > 0 && this->activeIterators.count(name) == 0))
+   {
+      throw CompilerException("Trying to access undeclared variable '"+name+"'");
+   }
+
    if(this->arrays.count(name) == 0)
    {
       throw CompilerException("'"+name+"' not an array!");
+   }
+
+   if(VariableRegistry::isConst(index))
+   {
+      lint indexVal = VariableRegistry::getConstVal(index);
+      if(indexVal >= this->arrays[name])
+      {
+         throw CompilerException("Index "+index+" greater than array '"+name+"' bounds.");
+      }
    }
 }
 
@@ -214,7 +232,7 @@ std::string VariableRegistry::toConst(lint val)
    return std::to_string(val);
 }
 
-std::set<std::string> VariableRegistry::getArrays()
+std::unordered_map<std::string,lint> VariableRegistry::getArrays()
 {
    return this->arrays;
 }
