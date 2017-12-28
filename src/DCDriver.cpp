@@ -23,7 +23,8 @@ void DC::DCDriver::parse( const char * const filename )
    std::ifstream inFile(filename);
    if(!inFile.good())
    {
-       exit( EXIT_FAILURE );
+      fprintf(stderr,"Unable to open input file!\n");
+      exit( EXIT_FAILURE );
    }
    parseHelper(inFile);
 }

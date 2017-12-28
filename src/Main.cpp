@@ -23,7 +23,13 @@ int main(const int argc, const char **argv)
 
       file.open(argv[2]);
 
-      driver.print( file ) << "\n";
+      if(file.good())
+         driver.print( file ) << "\n";
+      else
+      {
+         fprintf(stderr,"Unable to open output file!\n");
+         return( EXIT_FAILURE );
+      }
    }
    else if( argc == 2 )
    {
