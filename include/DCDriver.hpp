@@ -35,6 +35,7 @@ public:
    void declareVariable(std::string variable);
    void declareArray(std::string variable, lint size);
    void declareIterator(std::string variable);
+   void assertInitialized(Value value);
 
    IntInstrBlock parseRead(Value variable);
    IntInstrBlock parseWrite(Value variable);

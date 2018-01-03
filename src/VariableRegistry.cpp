@@ -144,6 +144,29 @@ lint VariableRegistry::newLabel()
    return --this->lastLabelId;
 }
 
+void VariableRegistry::setInitialized(std::string name)
+{
+   if(VariableRegistry::isConst(name))
+   {
+      throw CompilerException("Internal error: Cannot initialize constant value.");
+   }
+
+   if(!VariableRegistry::isPointer(name))
+   {
+      if(this->indexes.count(name) == 0)
+         throw CompilerException("Internal error: Cannot initialize non-existent variable.");
+      this->initialized.insert(name);
+   }
+}
+
+void VariableRegistry::assertInitialized(std::string name)
+{
+   if(!VariableRegistry::isPointer(name) && !VariableRegistry::isConst(name) && this->initialized.count(name) == 0)
+   {
+      throw CompilerException("Variable '"+name+"' is not initialized!");
+   }
+}
+
 void VariableRegistry::assertLoadableVariable(std::string name)
 {
    if(VariableRegistry::isConst(name)) return;

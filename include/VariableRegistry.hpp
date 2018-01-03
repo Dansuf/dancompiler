@@ -12,7 +12,8 @@ class VariableRegistry
 {
   lint lastFreeIndex = INT_TEMPS + ASSEMBLER_TEMPS;
   std::unordered_map<std::string,lint> indexes;
-  //TODO store info if initialized
+
+  std::set<std::string> initialized;
 
   std::unordered_map<std::string,lint> arrays;
 
@@ -46,6 +47,9 @@ public:
   lint getForCounter();
 
   lint newLabel();
+
+  void setInitialized(std::string name);
+  void assertInitialized(std::string name);
 
   void assertLoadableVariable(std::string name);
   void assertStorableVariable(std::string name);

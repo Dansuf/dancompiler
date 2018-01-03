@@ -75,6 +75,12 @@ void DC::DCDriver::declareArray(std::string variable, lint size)
 void DC::DCDriver::declareIterator(std::string variable)
 {
    this->variables.setIterator(variable);
+   this->variables.setInitialized(variable);
+}
+
+void DC::DCDriver::assertInitialized(Value variable)
+{
+   this->variables.assertInitialized(variable.get());
 }
 
 IntInstrBlock DC::DCDriver::parseRead(Value variable)
@@ -82,6 +88,7 @@ IntInstrBlock DC::DCDriver::parseRead(Value variable)
    IntInstrBlock block;
 
    this->variables.assertStorableVariable(variable.get());
+   this->variables.setInitialized(variable.get());
 
    variable.appendInitInstr(block);
    block.addInstr((IntInstrAbstr*) new IntInstr(IntInstrType::GET,variable.get()));
@@ -111,6 +118,7 @@ IntInstrBlock DC::DCDriver::parseAssign(Value variable,Expression expr)
    IntInstrBlock block;
 
    this->variables.assertStorableVariable(variable.get());
+   this->variables.setInitialized(variable.get());
 
    Value val1 = expr.getVal1();
    this->variables.assertLoadableVariable(val1.get()); //TODO change for sth more universal

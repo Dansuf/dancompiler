@@ -119,28 +119,56 @@ command:   identifier SET expression SEMICOLON              { CATCH($$ = driver.
          | IF condition THEN commands ENDIF                 { CATCH($$ = driver.parseIf($2,$4),@1) }
          | IF condition THEN commands ELSE commands ENDIF   { CATCH($$ = driver.parseIfElse($2,$4,$6),@1) }
          | FOR PID FROM value TO                            { CATCH(driver.declareIterator($2),@2) }
-            value DO commands ENDFOR                        { CATCH($$ = driver.parseFor($2,$4,$7,false,$9),@1) }
+            value DO commands ENDFOR                        { CATCH( driver.assertInitialized($4), @4)
+                                                              CATCH( driver.assertInitialized($7), @7)
+                                                              CATCH($$ = driver.parseFor($2,$4,$7,false,$9),@1) }
          | FOR PID FROM value DOWNTO                        { CATCH(driver.declareIterator($2),@2) }
-            value DO commands ENDFOR                        { CATCH($$ = driver.parseFor($2,$4,$7,true,$9),@1) }
+            value DO commands ENDFOR                        { CATCH( driver.assertInitialized($4), @4)
+                                                              CATCH( driver.assertInitialized($7), @7)
+                                                              CATCH($$ = driver.parseFor($2,$4,$7,true,$9),@1) }
          | WHILE condition DO commands ENDWHILE             { CATCH($$ = driver.parseWhile($2,$4),@1) }
          | READ identifier SEMICOLON                        { CATCH($$ = driver.parseRead($2),@1) }
-         | WRITE value SEMICOLON                            { CATCH($$ = driver.parseWrite($2),@1) }
+         | WRITE value SEMICOLON                            { CATCH( driver.assertInitialized($2), @2)
+                                                              CATCH($$ = driver.parseWrite($2),@1) }
          ;
 
-expression: value                                           { $$ = Expression($1); }
-         | value PLUS value                                 { $$ = Expression($1,Operator::PLUS,$3); }
-         | value MINUS value                                { $$ = Expression($1,Operator::MINUS,$3); }
-         | value STAR value                                 { $$ = Expression($1,Operator::STAR,$3); }
-         | value SLASH value                                { $$ = Expression($1,Operator::SLASH,$3); }
-         | value PERCENT value                              { $$ = Expression($1,Operator::PERCENT,$3); }
+expression: value                                           { CATCH( driver.assertInitialized($1), @1)
+                                                              $$ = Expression($1); }
+         | value PLUS value                                 { CATCH( driver.assertInitialized($1), @1)
+                                                              CATCH( driver.assertInitialized($3), @3)
+                                                              $$ = Expression($1,Operator::PLUS,$3); }
+         | value MINUS value                                { CATCH( driver.assertInitialized($1), @1)
+                                                              CATCH( driver.assertInitialized($3), @3)
+                                                              $$ = Expression($1,Operator::MINUS,$3); }
+         | value STAR value                                 { CATCH( driver.assertInitialized($1), @1)
+                                                              CATCH( driver.assertInitialized($3), @3)
+                                                              $$ = Expression($1,Operator::STAR,$3); }
+         | value SLASH value                                { CATCH( driver.assertInitialized($1), @1)
+                                                              CATCH( driver.assertInitialized($3), @3)
+                                                              $$ = Expression($1,Operator::SLASH,$3); }
+         | value PERCENT value                              { CATCH( driver.assertInitialized($1), @1)
+                                                              CATCH( driver.assertInitialized($3), @3)
+                                                              $$ = Expression($1,Operator::PERCENT,$3); }
          ;
 
-condition: value EQ value                                   { $$ = Condition($1,Comparator::EQ,$3); }
-         | value NEQ value                                  { $$ = Condition($1,Comparator::NEQ,$3); }
-         | value LT value                                   { $$ = Condition($1,Comparator::LT,$3); }
-         | value GT value                                   { $$ = Condition($1,Comparator::GT,$3); }
-         | value LTE value                                  { $$ = Condition($1,Comparator::LTE,$3); }
-         | value GTE value                                  { $$ = Condition($1,Comparator::GTE,$3); }
+condition: value EQ value                                   { CATCH( driver.assertInitialized($1), @1)
+                                                              CATCH( driver.assertInitialized($3), @3)
+                                                              $$ = Condition($1,Comparator::EQ,$3); }
+         | value NEQ value                                  { CATCH( driver.assertInitialized($1), @1)
+                                                              CATCH( driver.assertInitialized($3), @3)
+                                                              $$ = Condition($1,Comparator::NEQ,$3); }
+         | value LT value                                   { CATCH( driver.assertInitialized($1), @1)
+                                                              CATCH( driver.assertInitialized($3), @3)
+                                                              $$ = Condition($1,Comparator::LT,$3); }
+         | value GT value                                   { CATCH( driver.assertInitialized($1), @1)
+                                                              CATCH( driver.assertInitialized($3), @3)
+                                                              $$ = Condition($1,Comparator::GT,$3); }
+         | value LTE value                                  { CATCH( driver.assertInitialized($1), @1)
+                                                              CATCH( driver.assertInitialized($3), @3)
+                                                              $$ = Condition($1,Comparator::LTE,$3); }
+         | value GTE value                                  { CATCH( driver.assertInitialized($1), @1)
+                                                              CATCH( driver.assertInitialized($3), @3)
+                                                              $$ = Condition($1,Comparator::GTE,$3); }
          ;
 
 value:      NUM                                             { $$ = Value($1); }
