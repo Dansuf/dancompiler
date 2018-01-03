@@ -4,6 +4,58 @@
 
 const std::string InstructionRegistry::instrStr[19] = {"GET","PUT","LOAD","LOADI","STORE","STOREI","ADD","ADDI","SUB","SUBI","SHR","SHL","INC","DEC","ZERO","JUMP","JZERO","JODD","HALT"};
 
+bool InstructionRegistry::isLabelled(lint addr)
+{
+  bool labelled = false;
+  for(auto &label : this->labels)
+  {
+    if(label.second == addr)
+    {
+      labelled = true;
+      break;
+    }
+  }
+  return labelled;
+}
+
+bool InstructionRegistry::isAnyLabelled(lint firstAddr, lint lastAddr)
+{
+  bool labelled = false;
+  for(auto &label : this->labels)
+  {
+    for(lint i = firstAddr; i <= lastAddr; i++)
+    {
+      if(label.second == i)
+      {
+        labelled = true;
+        break;
+      }
+    }
+    if(labelled) break;
+  }
+  return labelled;
+}
+
+void InstructionRegistry::deleteInstructions(lint firstInstr, lint lastInstr)
+{
+  //TODO check if addresses in bounds of this->instructions
+  lint shift = lastInstr - firstInstr + 1;
+
+  for(lint i = lastInstr+1; i < this->instructions.size(); i++)
+  {
+    this->instructions[i-shift] = this->instructions[i];
+  }
+
+  for(auto &label : this->labels)
+  {
+    if(label.second > lastInstr)
+    {
+      label.second -= shift;
+    }
+  }
+}
+
+
 std::vector<std::pair<Instr,lint>>& InstructionRegistry::getInstructions()
 {
   return this->instructions;
@@ -70,6 +122,22 @@ lint InstructionRegistry::append(InstructionRegistry ir)
   return this->instructions.size()-1;
 }
 
+void InstructionRegistry::optimize()
+{
+  // Eliminate LOAD in STORE-LOAD pairs
+  for(lint i = 0; i < this->instructions.size()-1; i++)
+  {
+
+    if(instructions[i].second == instructions[i+1].second && instructions[i].first == Instr::STORE && instructions[i+1].first == Instr::LOAD)
+    {
+
+      if(!this->isAnyLabelled(i,i+1))
+      {
+        this->deleteInstructions(i+1,i+1);
+      }
+    }
+  }
+}
 
 std::ostream& InstructionRegistry::print( std::ostream &stream )
 {

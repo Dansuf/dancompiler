@@ -273,6 +273,7 @@ void DC::DCDriver::halt(IntInstrBlock block)
 
    arrayInit.optimize();
    this->instructions = arrayInit.translate(variables);
+   this->instructions.optimize();
    this->instructions.translateLabels();
 }
 

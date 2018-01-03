@@ -36,6 +36,11 @@ class InstructionRegistry
 
   std::unordered_map<lint,lint> labels; // <label id, address>
 
+  bool isLabelled(lint instruction);
+  bool isAnyLabelled(lint firstInstr, lint lastInstr);
+
+  void deleteInstructions(lint firstInstr, lint lastInstr);
+
 public:
 
   std::vector<std::pair<Instr,lint>>& getInstructions();
@@ -50,6 +55,8 @@ public:
 
   void setLabel(lint addr, lint labelId);
   void translateLabels();
+
+  void optimize();
 
   std::ostream& print( std::ostream &stream );
 };

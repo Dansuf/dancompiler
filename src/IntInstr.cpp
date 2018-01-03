@@ -61,15 +61,30 @@ void IntInstr::addMulInstruction(VariableRegistry& variables, InstructionRegistr
   lint start = variables.newLabel();
   lint odd = variables.newLabel();
   lint realodd = variables.newLabel();
+  lint altodd = variables.newLabel();
+  lint altaltodd = variables.newLabel();
+  lint altend = variables.newLabel();
   lint end = variables.newLabel();
 
   IntInstr::addLoadInstruction(variables, instructions, argument1);
   instructions.addInstruction(Instr::STORE,variables.getIndex(tmp1));
   instructions.addInstruction(Instr::JODD,realodd);
+  //IntInstr::addLoadInstruction(variables, instructions, argument2);
+  //instructions.addInstruction(Instr::STORE,variables.getIndex(tmp2));
+  //instructions.addInstruction(Instr::ZERO);
+  //IntInstr::addStoreInstruction(variables,instructions,out);
+  instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp1));
+  instructions.addInstruction(Instr::SHR);
+  instructions.addInstruction(Instr::JZERO,end);
+  instructions.addInstruction(Instr::STORE,variables.getIndex(tmp1));
+  instructions.addInstruction(Instr::JODD,altaltodd);
   IntInstr::addLoadInstruction(variables, instructions, argument2);
+  instructions.addInstruction(Instr::SHL);
   instructions.addInstruction(Instr::STORE,variables.getIndex(tmp2));
   instructions.addInstruction(Instr::ZERO);
   IntInstr::addStoreInstruction(variables,instructions,out);
+  //instructions.addInstruction(Instr::JUMP,start);
+
   lint startAddr = instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp1));
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::JZERO,end);
@@ -79,28 +94,48 @@ void IntInstr::addMulInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SHL);
   instructions.addInstruction(Instr::STORE,variables.getIndex(tmp2));
   instructions.addInstruction(Instr::JUMP,start);
+
   lint oddAddr = instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp2));
   instructions.addInstruction(Instr::SHL);
   instructions.addInstruction(Instr::STORE,variables.getIndex(tmp2));
   IntInstr::addAddInstruction(variables,instructions,out);
   IntInstr::addStoreInstruction(variables,instructions,out);
-  lint realoddAddr = instructions.addInstruction(Instr::JUMP,start) + 1;
-  IntInstr::addLoadInstruction(variables, instructions, argument2);
-  instructions.addInstruction(Instr::STORE,variables.getIndex(tmp2));
-  IntInstr::addStoreInstruction(variables,instructions,out);
-  instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp1));
+  instructions.addInstruction(Instr::JUMP,start);
+  //IntInstr::addLoadInstruction(variables, instructions, argument2);
+  //instructions.addInstruction(Instr::STORE,variables.getIndex(tmp2));
+  //IntInstr::addStoreInstruction(variables,instructions,out);
+  lint realoddAddr = instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp1));
   instructions.addInstruction(Instr::SHR);
-  instructions.addInstruction(Instr::JZERO,end);
+  instructions.addInstruction(Instr::JZERO,altend);
   instructions.addInstruction(Instr::STORE,variables.getIndex(tmp1));
-  instructions.addInstruction(Instr::JODD,odd);
-  instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp2));
+  instructions.addInstruction(Instr::JODD,altodd);
+  IntInstr::addLoadInstruction(variables, instructions, argument2);
+  IntInstr::addStoreInstruction(variables,instructions,out);
   instructions.addInstruction(Instr::SHL);
   instructions.addInstruction(Instr::STORE,variables.getIndex(tmp2));
-  lint endAddr = instructions.addInstruction(Instr::JUMP,start) + 1;
+  lint altoddAddr = instructions.addInstruction(Instr::JUMP,start) + 1;
+  IntInstr::addLoadInstruction(variables, instructions, argument2);
+  IntInstr::addStoreInstruction(variables,instructions,out);
+  instructions.addInstruction(Instr::SHL);
+  instructions.addInstruction(Instr::STORE,variables.getIndex(tmp2));
+  IntInstr::addAddInstruction(variables,instructions,out);
+  IntInstr::addStoreInstruction(variables,instructions,out);
+  lint altaltoddAddr = instructions.addInstruction(Instr::JUMP,start) + 1;
+  IntInstr::addLoadInstruction(variables, instructions, argument2);
+  instructions.addInstruction(Instr::SHL);
+  instructions.addInstruction(Instr::STORE,variables.getIndex(tmp2));
+  IntInstr::addStoreInstruction(variables,instructions,out);
+  lint altendAddr = instructions.addInstruction(Instr::JUMP,start) + 1;
+  IntInstr::addLoadInstruction(variables, instructions, argument2);
+  lint endAddr = IntInstr::addStoreInstruction(variables,instructions,out) + 1;
+
 
   instructions.setLabel(startAddr,start);
   instructions.setLabel(oddAddr,odd);
   instructions.setLabel(realoddAddr,realodd);
+  instructions.setLabel(altoddAddr,altodd);
+  instructions.setLabel(altaltoddAddr,altaltodd);
+  instructions.setLabel(altendAddr,altend);
   instructions.setLabel(endAddr,end);
 
   variables.freeAssemblerTemps();
@@ -257,8 +292,16 @@ InstructionRegistry IntInstr::translate(VariableRegistry& variables)
         this->val2 = this->val3;
         this->val3 = tmp;
       }
-      IntInstr::addLoadInstruction(variables,out,this->val2);
-      IntInstr::addAddInstruction(variables,out,this->val3);
+      if(VariableRegistry::isConst(this->val2) && VariableRegistry::getConstVal(this->val2) == 1)
+      {
+        IntInstr::addLoadInstruction(variables,out,this->val3);
+        out.addInstruction(Instr::INC);
+      }
+      else
+      {
+        IntInstr::addLoadInstruction(variables,out,this->val2);
+        IntInstr::addAddInstruction(variables,out,this->val3);
+      }
       IntInstr::addStoreInstruction(variables,out,this->val1);
       break;
     case IntInstrType::SUB:
