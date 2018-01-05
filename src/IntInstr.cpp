@@ -171,18 +171,23 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     tmp2 = variables.getAssemblerTemp();
   }
 
+  lint normaldiv = variables.newLabel();
   lint whil = variables.newLabel();
-  lint afterwhile = variables.newLabel();
   lint altif = variables.newLabel();
   lint iff = variables.newLabel();
+  lint specialif = variables.newLabel();
   lint end = variables.newLabel();
   lint divzero = variables.newLabel();
   lint endwhile = variables.newLabel();
-  lint altendwhile = variables.newLabel();
   lint next = variables.newLabel();
   lint next2 = variables.newLabel();
 
 
+  if(VariableRegistry::isConst(argument1))
+  {
+    IntInstr::addLoadInstruction(variables,instructions,argument1);
+    instructions.addInstruction(Instr::STORE,variables.getIndex(tmp));
+  }
   IntInstr::addLoadInstruction(variables,instructions,argument2);
   if(VariableRegistry::isConst(argument2))
   {
@@ -193,23 +198,100 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     instructions.addInstruction(Instr::STORE,variables.getIndex(tmp2));
   }
   instructions.addInstruction(Instr::JZERO,divzero);
-  IntInstr::addLoadInstruction(variables,instructions,argument1);
+  instructions.addInstruction(Instr::SHL);
+
   if(VariableRegistry::isConst(argument1))
-  {
-    instructions.addInstruction(Instr::STORE,variables.getIndex(tmp));
-  }
-  IntInstr::addStoreInstruction(variables,instructions,remainder);
-  if(VariableRegistry::isConst(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
   else
   {
+    IntInstr::addSubInstruction(variables,instructions,argument1);
+  }
+  instructions.addInstruction(Instr::JZERO,normaldiv);
+
+  IntInstr::addLoadInstruction(variables,instructions,argument1);
+  IntInstr::addStoreInstruction(variables,instructions,remainder);
+  instructions.addInstruction(Instr::INC);
+  if(VariableRegistry::isConst(argument2))
+  {
+    IntInstr::addSubInstruction(variables,instructions,tmp);
+  }
+  else if(out == argument2 || remainder == argument2)
+  {
+    IntInstr::addSubInstruction(variables,instructions,tmp2);
+  }
+  else
+  {
     IntInstr::addSubInstruction(variables,instructions,argument2);
   }
-  instructions.addInstruction(Instr::JZERO,altendwhile);
+  instructions.addInstruction(Instr::JZERO,next2);
+  lint next2Addr = instructions.addInstruction(Instr::JUMP,altif) + 1;
+  if(resultNeeded)
+  {
+    instructions.addInstruction(Instr::ZERO);
+    IntInstr::addStoreInstruction(variables,instructions,out);
+  }
+  if(out == argument2 || remainder == argument2)
+  {
+    instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp2));
+  }
+  else
+  {
+    IntInstr::addLoadInstruction(variables,instructions,argument2);
+  }
+  instructions.addInstruction(Instr::SHR);
+  instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
+  instructions.addInstruction(Instr::INC);
+  if(VariableRegistry::isConst(argument2))
+  {
+    IntInstr::addSubInstruction(variables,instructions,tmp);
+  }
+  else if(out == argument2 || remainder == argument2)
+  {
+    IntInstr::addSubInstruction(variables,instructions,tmp2);
+  }
+  else
+  {
+    IntInstr::addSubInstruction(variables,instructions,argument2);
+  }
+  instructions.addInstruction(Instr::JZERO,end);
+  instructions.addInstruction(Instr::JUMP,endwhile);
+  lint altifAddr = instructions.addInstruction(Instr::DEC);
+  IntInstr::addStoreInstruction(variables,instructions,remainder);
+  if(resultNeeded)
+  {
+    instructions.addInstruction(Instr::ZERO);
+    instructions.addInstruction(Instr::INC);
+    IntInstr::addStoreInstruction(variables,instructions,out);
+  }
+  if(out == argument2 || remainder == argument2)
+  {
+    instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp2));
+  }
+  else
+  {
+    IntInstr::addLoadInstruction(variables,instructions,argument2);
+  }
+  instructions.addInstruction(Instr::SHR);
+  instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
+  instructions.addInstruction(Instr::INC);
+  if(VariableRegistry::isConst(argument2))
+  {
+    IntInstr::addSubInstruction(variables,instructions,tmp);
+  }
+  else if(out == argument2 || remainder == argument2)
+  {
+    IntInstr::addSubInstruction(variables,instructions,tmp2);
+  }
+  else
+  {
+    IntInstr::addSubInstruction(variables,instructions,argument2);
+  }
+  instructions.addInstruction(Instr::JZERO,end);
+  instructions.addInstruction(Instr::JUMP,endwhile);
 
-  IntInstr::addLoadInstruction(variables,instructions,argument2);
+  lint normaldivAddr = IntInstr::addLoadInstruction(variables,instructions,argument2);
   instructions.addInstruction(Instr::SHL);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::SHL);
@@ -222,7 +304,16 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     IntInstr::addSubInstruction(variables,instructions,argument1);
   }
   instructions.addInstruction(Instr::JZERO,whil);
-  instructions.addInstruction(Instr::JUMP,afterwhile);
+  IntInstr::addLoadInstruction(variables,instructions,argument1);
+  instructions.addInstruction(Instr::SUB,variables.getIndex(scaledDivisor));
+  IntInstr::addStoreInstruction(variables,instructions,remainder);
+  if(resultNeeded)
+  {
+    instructions.addInstruction(Instr::ZERO);
+    instructions.addInstruction(Instr::INC);
+    IntInstr::addStoreInstruction(variables,instructions,out);
+  }
+  instructions.addInstruction(Instr::JUMP, specialif);
 
   lint whileAddr = instructions.addInstruction(Instr::LOAD,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::SHL);
@@ -238,19 +329,18 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   }
   instructions.addInstruction(Instr::JZERO,whil);
 
-  lint afterwhileAddr, endwhileAddr;
+  IntInstr::addLoadInstruction(variables,instructions,argument1);
+  instructions.addInstruction(Instr::SUB,variables.getIndex(scaledDivisor));
+  IntInstr::addStoreInstruction(variables,instructions,remainder);
   if(resultNeeded)
   {
-    afterwhileAddr = instructions.addInstruction(Instr::ZERO);
+    instructions.addInstruction(Instr::ZERO);
+    instructions.addInstruction(Instr::INC);
     IntInstr::addStoreInstruction(variables,instructions,out);
-    endwhileAddr = IntInstr::addLoadInstruction(variables,instructions,remainder);
   }
-  else
-  {
-    afterwhileAddr = IntInstr::addLoadInstruction(variables,instructions,remainder);
-    endwhileAddr = afterwhileAddr;
-  }
+  instructions.addInstruction(Instr::JUMP,specialif);
 
+  lint endwhileAddr = IntInstr::addLoadInstruction(variables,instructions,remainder);
   instructions.addInstruction(Instr::INC);
   instructions.addInstruction(Instr::SUB,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::JZERO,next);
@@ -288,95 +378,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     instructions.addInstruction(Instr::INC);
     IntInstr::addStoreInstruction(variables,instructions,out);
   }
-  instructions.addInstruction(Instr::LOAD,variables.getIndex(scaledDivisor));
-  instructions.addInstruction(Instr::SHR);
-  instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
-  instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
-  {
-    IntInstr::addSubInstruction(variables,instructions,tmp);
-  }
-  else if(out == argument2 || remainder == argument2)
-  {
-    IntInstr::addSubInstruction(variables,instructions,tmp2);
-  }
-  else
-  {
-    IntInstr::addSubInstruction(variables,instructions,argument2);
-  }
-  instructions.addInstruction(Instr::JZERO,end);
-  lint altendwhileAddr = instructions.addInstruction(Instr::JUMP,endwhile) + 1;
-
-
-  if(resultNeeded)
-  {
-    instructions.addInstruction(Instr::ZERO);
-    IntInstr::addStoreInstruction(variables,instructions,out);
-  }
-  IntInstr::addLoadInstruction(variables,instructions,remainder);
-  instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
-  {
-    IntInstr::addSubInstruction(variables,instructions,tmp);
-  }
-  else if(out == argument2 || remainder == argument2)
-  {
-    IntInstr::addSubInstruction(variables,instructions,tmp2);
-  }
-  else
-  {
-    IntInstr::addSubInstruction(variables,instructions,argument2);
-  }
-  instructions.addInstruction(Instr::JZERO,next2);
-  lint next2Addr = instructions.addInstruction(Instr::JUMP,altif) + 1;
-  if(resultNeeded)
-  {
-    IntInstr::addLoadInstruction(variables,instructions,out);
-    instructions.addInstruction(Instr::SHL);
-    IntInstr::addStoreInstruction(variables,instructions,out);
-  }
-  if(out == argument2 || remainder == argument2)
-  {
-    instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp2));
-  }
-  else
-  {
-    IntInstr::addLoadInstruction(variables,instructions,argument2);
-  }
-  instructions.addInstruction(Instr::SHR);
-  instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
-  instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
-  {
-    IntInstr::addSubInstruction(variables,instructions,tmp);
-  }
-  else if(out == argument2 || remainder == argument2)
-  {
-    IntInstr::addSubInstruction(variables,instructions,tmp2);
-  }
-  else
-  {
-    IntInstr::addSubInstruction(variables,instructions,argument2);
-  }
-  instructions.addInstruction(Instr::JZERO,end);
-  instructions.addInstruction(Instr::JUMP,endwhile);
-  lint altifAddr = instructions.addInstruction(Instr::DEC);
-  IntInstr::addStoreInstruction(variables,instructions,remainder);
-  if(resultNeeded)
-  {
-    IntInstr::addLoadInstruction(variables,instructions,out);
-    instructions.addInstruction(Instr::SHL);
-    instructions.addInstruction(Instr::INC);
-    IntInstr::addStoreInstruction(variables,instructions,out);
-  }
-  if(out == argument2 || remainder == argument2)
-  {
-    instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp2));
-  }
-  else
-  {
-    IntInstr::addLoadInstruction(variables,instructions,argument2);
-  }
+  lint specialifAddr = instructions.addInstruction(Instr::LOAD,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::INC);
@@ -401,14 +403,14 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   if(remainderNeeded) endAddr = IntInstr::addStoreInstruction(variables,instructions,remainder) + 1;
 
 
+  instructions.setLabel(normaldivAddr,normaldiv);
   instructions.setLabel(whileAddr,whil);
-  instructions.setLabel(afterwhileAddr,afterwhile);
   instructions.setLabel(altifAddr,altif);
   instructions.setLabel(ifAddr,iff);
+  instructions.setLabel(specialifAddr,specialif);
   instructions.setLabel(endAddr,end);
   instructions.setLabel(divzeroAddr,divzero);
   instructions.setLabel(endwhileAddr,endwhile);
-  instructions.setLabel(altendwhileAddr,altendwhile);
   instructions.setLabel(nextAddr,next);
   instructions.setLabel(next2Addr,next2);
 
