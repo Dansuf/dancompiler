@@ -29,7 +29,7 @@ class IntInstr : IntInstrAbstr
   std::string val3;
 
 public:
-  static void addLoadInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable);
+  static lint addLoadInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable);
   static void addAddInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable);
   static void addSubInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable);
   static lint addStoreInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable);
