@@ -6,8 +6,8 @@
 
 class IntInstrWhile : IntInstrAbstr
 {
-  IntInstrBlock subBlock, revSubBlock;
-  
+  IntInstrBlock subBlock, revSubBlock, valInitBlock;
+
   std::string val1;
   std::string val2;
   Comparator comp;

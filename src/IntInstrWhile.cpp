@@ -6,6 +6,7 @@ IntInstrWhile::IntInstrWhile(std::string val1, std::string val2, Comparator comp
   {
     case Comparator::EQ:
     case Comparator::NEQ:
+      this->valInitBlock = valInitBlock;
       this->subBlock = valInitBlock;
       this->subBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val2,this->val1));
       this->revSubBlock = valInitBlock;
@@ -65,16 +66,35 @@ InstructionRegistry IntInstrWhile::translateEq(VariableRegistry& variables)
   lint cmds = variables.newLabel();
   lint endwhile = variables.newLabel();
 
-  InstructionRegistry ir = this->subBlock.translate(variables);
-  ir.addInstruction(Instr::JZERO,next);
-  lint cmdsAddr = ir.addInstruction(Instr::JUMP,endwhile) + 1;
-  ir.append(this->block.translate(variables));
+  lint cmdsAddr, nextAddr, endwhileAddr;
 
-  ir.append(this->subBlock.translate(variables));
-  ir.addInstruction(Instr::JZERO,next);
-  lint nextAddr = ir.addInstruction(Instr::JUMP,endwhile) + 1;
-  ir.append(this->revSubBlock.translate(variables));
-  lint endwhileAddr = ir.addInstruction(Instr::JZERO,cmds) + 1;
+  InstructionRegistry ir;
+
+  if(VariableRegistry::isConst(this->val2) && VariableRegistry::getConstVal(this->val2) == 0 ) //TODO generalize
+  {
+    ir = this->valInitBlock.translate(variables);
+    IntInstr::addLoadInstruction(variables,ir,val1);
+    ir.addInstruction(Instr::JZERO,cmds);
+    cmdsAddr =ir.addInstruction(Instr::JUMP,endwhile) + 1;
+    ir.append(this->block.translate(variables));
+
+    ir.append(this->valInitBlock.translate(variables));
+    IntInstr::addLoadInstruction(variables,ir,val1);
+    endwhileAddr = ir.addInstruction(Instr::JZERO,cmds) + 1;
+  }
+  else
+  {
+    ir = this->subBlock.translate(variables);
+    ir.addInstruction(Instr::JZERO,next);
+    cmdsAddr = ir.addInstruction(Instr::JUMP,endwhile) + 1;
+    ir.append(this->block.translate(variables));
+
+    ir.append(this->subBlock.translate(variables));
+    ir.addInstruction(Instr::JZERO,next);
+    nextAddr = ir.addInstruction(Instr::JUMP,endwhile) + 1;
+    ir.append(this->revSubBlock.translate(variables));
+    endwhileAddr = ir.addInstruction(Instr::JZERO,cmds) + 1;
+  }
 
 
   ir.setLabel(nextAddr,next);
