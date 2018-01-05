@@ -26,6 +26,7 @@ IntInstrIf::IntInstrIf(std::string val1, std::string val2, Comparator comp, IntI
       break;
     case Comparator::GT:
     case Comparator::LTE:
+      this->valInitBlock = valInitBlock;
       this->subBlock = valInitBlock;
       this->subBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val1,this->val2));
       break;
@@ -178,9 +179,20 @@ InstructionRegistry IntInstrIf::translateGt(VariableRegistry& variables)
   lint cmds2;
   if(!this->elBlock.empty()) cmds2 = variables.newLabel();
 
-  InstructionRegistry ir = this->subBlock.translate(variables);
+  lint endifAddr,cmds2Addr;
 
-  lint cmds2Addr, endifAddr;
+  InstructionRegistry ir;
+
+  if(VariableRegistry::isConst(this->val2) && VariableRegistry::getConstVal(this->val2) == 0) //TODO generalize
+  {
+    ir = this->valInitBlock.translate(variables);
+
+    IntInstr::addLoadInstruction(variables,ir,this->val1);
+  }
+  else
+  {
+    ir = this->subBlock.translate(variables);
+  }
 
   if(this->elBlock.empty())
   {

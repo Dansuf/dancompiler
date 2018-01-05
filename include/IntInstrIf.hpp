@@ -12,7 +12,7 @@ class IntInstrIf : IntInstrAbstr
   std::string val1, val2;
   Comparator comp;
 
-  IntInstrBlock block, elBlock;
+  IntInstrBlock block, elBlock, valInitBlock;
 
   InstructionRegistry translateEq(VariableRegistry& variables);
   InstructionRegistry translateNeq(VariableRegistry& variables);
