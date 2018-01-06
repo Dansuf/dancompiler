@@ -173,9 +173,6 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
 
   lint normaldiv = variables.newLabel();
   lint whil = variables.newLabel();
-  lint altif = variables.newLabel();
-  lint iff = variables.newLabel();
-  lint specialif = variables.newLabel();
   lint end = variables.newLabel();
   lint divzero = variables.newLabel();
   lint endwhile = variables.newLabel();
@@ -226,10 +223,13 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     IntInstr::addSubInstruction(variables,instructions,argument2);
   }
   instructions.addInstruction(Instr::JZERO,next2);
-  lint next2Addr = instructions.addInstruction(Instr::JUMP,altif) + 1;
+
+  instructions.addInstruction(Instr::DEC);
+  IntInstr::addStoreInstruction(variables,instructions,remainder);
   if(resultNeeded)
   {
     instructions.addInstruction(Instr::ZERO);
+    instructions.addInstruction(Instr::INC);
     IntInstr::addStoreInstruction(variables,instructions,out);
   }
   if(out == argument2 || remainder == argument2)
@@ -256,13 +256,11 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     IntInstr::addSubInstruction(variables,instructions,argument2);
   }
   instructions.addInstruction(Instr::JZERO,end);
-  instructions.addInstruction(Instr::JUMP,endwhile);
-  lint altifAddr = instructions.addInstruction(Instr::DEC);
-  IntInstr::addStoreInstruction(variables,instructions,remainder);
+  lint next2Addr = instructions.addInstruction(Instr::JUMP,endwhile) + 1;
+
   if(resultNeeded)
   {
     instructions.addInstruction(Instr::ZERO);
-    instructions.addInstruction(Instr::INC);
     IntInstr::addStoreInstruction(variables,instructions,out);
   }
   if(out == argument2 || remainder == argument2)
@@ -313,7 +311,24 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     instructions.addInstruction(Instr::INC);
     IntInstr::addStoreInstruction(variables,instructions,out);
   }
-  instructions.addInstruction(Instr::JUMP, specialif);
+  instructions.addInstruction(Instr::LOAD,variables.getIndex(scaledDivisor));
+  instructions.addInstruction(Instr::SHR);
+  instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
+  instructions.addInstruction(Instr::INC);
+  if(VariableRegistry::isConst(argument2))
+  {
+    IntInstr::addSubInstruction(variables,instructions,tmp);
+  }
+  else if(out == argument2 || remainder == argument2)
+  {
+    IntInstr::addSubInstruction(variables,instructions,tmp2);
+  }
+  else
+  {
+    IntInstr::addSubInstruction(variables,instructions,argument2);
+  }
+  instructions.addInstruction(Instr::JZERO,end);
+  instructions.addInstruction(Instr::JUMP,endwhile);
 
   lint whileAddr = instructions.addInstruction(Instr::LOAD,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::SHL);
@@ -338,19 +353,6 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     instructions.addInstruction(Instr::INC);
     IntInstr::addStoreInstruction(variables,instructions,out);
   }
-  instructions.addInstruction(Instr::JUMP,specialif);
-
-  lint endwhileAddr = IntInstr::addLoadInstruction(variables,instructions,remainder);
-  instructions.addInstruction(Instr::INC);
-  instructions.addInstruction(Instr::SUB,variables.getIndex(scaledDivisor));
-  instructions.addInstruction(Instr::JZERO,next);
-  lint nextAddr = instructions.addInstruction(Instr::JUMP,iff) + 1;
-  if(resultNeeded)
-  {
-    IntInstr::addLoadInstruction(variables,instructions,out);
-    instructions.addInstruction(Instr::SHL);
-    IntInstr::addStoreInstruction(variables,instructions,out);
-  }
   instructions.addInstruction(Instr::LOAD,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
@@ -368,7 +370,11 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     IntInstr::addSubInstruction(variables,instructions,argument2);
   }
   instructions.addInstruction(Instr::JZERO,end);
-  instructions.addInstruction(Instr::JUMP,endwhile);
+
+  lint endwhileAddr = IntInstr::addLoadInstruction(variables,instructions,remainder);
+  instructions.addInstruction(Instr::INC);
+  instructions.addInstruction(Instr::SUB,variables.getIndex(scaledDivisor));
+  instructions.addInstruction(Instr::JZERO,next);
   lint ifAddr = instructions.addInstruction(Instr::DEC);
   IntInstr::addStoreInstruction(variables,instructions,remainder);
   if(resultNeeded)
@@ -395,6 +401,30 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     IntInstr::addSubInstruction(variables,instructions,argument2);
   }
   instructions.addInstruction(Instr::JZERO,end);
+  lint nextAddr = instructions.addInstruction(Instr::JUMP,endwhile) + 1;
+  if(resultNeeded)
+  {
+    IntInstr::addLoadInstruction(variables,instructions,out);
+    instructions.addInstruction(Instr::SHL);
+    IntInstr::addStoreInstruction(variables,instructions,out);
+  }
+  instructions.addInstruction(Instr::LOAD,variables.getIndex(scaledDivisor));
+  instructions.addInstruction(Instr::SHR);
+  instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
+  instructions.addInstruction(Instr::INC);
+  if(VariableRegistry::isConst(argument2))
+  {
+    IntInstr::addSubInstruction(variables,instructions,tmp);
+  }
+  else if(out == argument2 || remainder == argument2)
+  {
+    IntInstr::addSubInstruction(variables,instructions,tmp2);
+  }
+  else
+  {
+    IntInstr::addSubInstruction(variables,instructions,argument2);
+  }
+  instructions.addInstruction(Instr::JZERO,end);
   instructions.addInstruction(Instr::JUMP,endwhile);
 
   lint divzeroAddr = instructions.addInstruction(Instr::ZERO);
@@ -405,9 +435,6 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
 
   instructions.setLabel(normaldivAddr,normaldiv);
   instructions.setLabel(whileAddr,whil);
-  instructions.setLabel(altifAddr,altif);
-  instructions.setLabel(ifAddr,iff);
-  instructions.setLabel(specialifAddr,specialif);
   instructions.setLabel(endAddr,end);
   instructions.setLabel(divzeroAddr,divzero);
   instructions.setLabel(endwhileAddr,endwhile);
