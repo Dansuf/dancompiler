@@ -82,8 +82,8 @@ void IntInstr::addMulInstruction(VariableRegistry& variables, InstructionRegistr
   //instructions.addInstruction(Instr::ZERO);
   //IntInstr::addStoreInstruction(variables,instructions,out);
   //instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp1));
+  instructions.addInstruction(Instr::JZERO,altaltend);
   instructions.addInstruction(Instr::SHR);
-  instructions.addInstruction(Instr::JZERO,end);
   instructions.addInstruction(Instr::STORE,variables.getIndex(tmp1));
   instructions.addInstruction(Instr::JODD,altaltodd);
   IntInstr::addLoadInstruction(variables, instructions, argument2);
