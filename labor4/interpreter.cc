@@ -53,6 +53,8 @@ int main(int argc, char* argv[])
 	i1 = ERROR;
         i2 = 0;
 
+    // printf(" %s %d\n",com.c_str(),program.size());
+
 	if( com=="GET" ) { i1 = GET; }
 	if( com=="PUT" ) { i1 = PUT; }
 
