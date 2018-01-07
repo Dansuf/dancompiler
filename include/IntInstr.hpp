@@ -28,6 +28,9 @@ class IntInstr : IntInstrAbstr
   std::string val2;
   std::string val3;
 
+  static void addMulConstInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument, lint constant, std::string out);
+  static void addDivByConstInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument1, lint constant, std::string out, std::string remainder);
+
 public:
   static lint addLoadInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable);
   static void addAddInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string variable);

@@ -104,8 +104,71 @@ lint IntInstr::addStoreInstruction(VariableRegistry& variables, InstructionRegis
   return instructions.addInstruction(i,variables.getIndex(argument));
 }
 
+void IntInstr::addMulConstInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument, lint constant, std::string out)
+{
+
+  if(constant == 0)
+  {
+    instructions.addInstruction(Instr::ZERO);
+  }
+  else
+  {
+    std::vector<bool> bits;
+    lint ones = 0;
+
+    while(constant > 0)
+    {
+      bits.push_back(constant%2 == 0 ? false : true);
+      if(bits.back() == true) ones++;
+      else ones = 0;
+      constant /= 2;
+    }
+
+    IntInstr::addLoadInstruction(variables, instructions, argument);
+
+    if(ones >= 3)
+    {
+      for(lint i = 0;i < ones; i++)
+      {
+        instructions.addInstruction(Instr::SHL);
+      }
+      IntInstr::addSubInstruction(variables, instructions, argument);
+
+      if(ones != bits.size())instructions.addInstruction(Instr::SHL);
+
+      for(auto it = bits.rbegin() + ones; it != bits.rend(); it++)
+      {
+        if(*it) IntInstr::addAddInstruction(variables, instructions, argument);
+        if(it+1 != bits.rend())instructions.addInstruction(Instr::SHL);
+      }
+    }
+    else
+    {
+      if(bits.size() > 1) instructions.addInstruction(Instr::SHL);
+      for(auto it = bits.rbegin()+1; it != bits.rend(); it++)
+      {
+        if(*it) IntInstr::addAddInstruction(variables, instructions, argument);
+        if(it+1 != bits.rend())instructions.addInstruction(Instr::SHL);
+      }
+    }
+  }
+  IntInstr::addStoreInstruction(variables,instructions,out);
+}
+
 void IntInstr::addMulInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument1, std::string argument2, std::string out)
 {
+  if(VariableRegistry::isConst(argument1))
+  {
+    IntInstr::addMulConstInstruction(variables,instructions,argument2,VariableRegistry::getConstVal(argument1),out);
+    return;
+  }
+  else if(VariableRegistry::isConst(argument2))
+  {
+    IntInstr::addMulConstInstruction(variables,instructions,argument1,VariableRegistry::getConstVal(argument2),out);
+    return;
+  }
+
+
   std::string tmp1 = variables.getAssemblerTemp();
   std::string tmp2 = variables.getAssemblerTemp();
 
@@ -234,6 +297,19 @@ void IntInstr::addMulInstruction(VariableRegistry& variables, InstructionRegistr
   variables.freeAssemblerTemps();
 }
 
+void IntInstr::addDivByConstInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument1, lint constant, std::string out, std::string remainder)
+{
+  IntInstr::addLoadInstruction(variables, instructions, argument1);
+
+  while(constant != 1)
+  {
+    instructions.addInstruction(Instr::SHR);
+    constant /= 2;
+  }
+  IntInstr::addStoreInstruction(variables, instructions, out);
+
+}
+
 void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument1, std::string argument2, std::string out, std::string remainder)
 {
   bool remainderNeeded = true;
@@ -246,6 +322,23 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     remainderNeeded = false;
     remainder = variables.getAssemblerTemp();
+  }
+
+  if(remainderNeeded == false && VariableRegistry::isConst(argument2))
+  {
+    lint val = VariableRegistry::getConstVal(argument2);
+
+    while(val % 2 == 0)
+    {
+      val /= 2;
+    }
+
+    if(val == 1)
+    {
+      IntInstr::addDivByConstInstruction(variables, instructions, argument1, VariableRegistry::getConstVal(argument2),out, remainder);
+      variables.freeAssemblerTemps();
+      return;
+    }
   }
 
   std::string scaledDivisor = variables.getAssemblerTemp();
@@ -757,7 +850,12 @@ void IntInstr::optimize()
         this->val3 = "";
       }
       break;
-    case IntInstrType::DIV:
+    case IntInstrType::DIV: // div by zero, div by one
+      if(VariableRegistry::isConst(this->val3) && VariableRegistry::getConstVal(this->val3) == 0)
+      {
+        this->type = IntInstrType::SET;
+        this->val2 = VariableRegistry::toConst(0);
+      }
       if(VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3))
       {
         this->type = IntInstrType::SET;
