@@ -17,19 +17,42 @@ lint IntInstr::addLoadInstruction(VariableRegistry& variables, InstructionRegist
     lint val = VariableRegistry::getConstVal(argument);
 
     std::vector<bool> bits;
+    lint ones = 0;
 
     while(val > 0)
     {
       bits.push_back(val%2 == 0 ? false : true);
+      if(bits.back() == true) ones++;
+      else ones = 0;
       val /= 2;
     }
 
     firstAddr = instructions.addInstruction(Instr::ZERO);
 
-    for(auto it = bits.rbegin(); it != bits.rend(); it++)
+    if(ones >= 4)
     {
-      if(*it) instructions.addInstruction(Instr::INC);
-      if(it+1 != bits.rend())instructions.addInstruction(Instr::SHL);
+      instructions.addInstruction(Instr::INC);
+      for(lint i = 0;i < ones; i++)
+      {
+        instructions.addInstruction(Instr::SHL);
+      }
+      instructions.addInstruction(Instr::DEC);
+
+      if(ones != bits.size())instructions.addInstruction(Instr::SHL);
+
+      for(auto it = bits.rbegin() + ones; it != bits.rend(); it++)
+      {
+        if(*it) instructions.addInstruction(Instr::INC);
+        if(it+1 != bits.rend())instructions.addInstruction(Instr::SHL);
+      }
+    }
+    else
+    {
+      for(auto it = bits.rbegin(); it != bits.rend(); it++)
+      {
+        if(*it) instructions.addInstruction(Instr::INC);
+        if(it+1 != bits.rend())instructions.addInstruction(Instr::SHL);
+      }
     }
   }
   else
