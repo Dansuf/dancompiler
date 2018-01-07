@@ -65,14 +65,37 @@ lint IntInstr::addLoadInstruction(VariableRegistry& variables, InstructionRegist
 
 void IntInstr::addAddInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument)
 {
-  Instr i = VariableRegistry::isPointer(argument) ? Instr::ADDI : Instr::ADD;
-  instructions.addInstruction(i,variables.getIndex(argument));
+  if(VariableRegistry::isConst(argument) && VariableRegistry::getConstVal(argument) <= 5)
+  {
+    int val = VariableRegistry::getConstVal(argument);
+    for(int i = 0; i < val; i++)
+    {
+      instructions.addInstruction(Instr::INC);
+    }
+  }
+  else
+  {
+    Instr i = VariableRegistry::isPointer(argument) ? Instr::ADDI : Instr::ADD;
+    instructions.addInstruction(i,variables.getIndex(argument));
+  }
 }
 
 void IntInstr::addSubInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument)
 {
-  Instr i = VariableRegistry::isPointer(argument) ? Instr::SUBI : Instr::SUB;
-  instructions.addInstruction(i,variables.getIndex(argument));
+  if(VariableRegistry::isConst(argument) && VariableRegistry::getConstVal(argument) <= 26)
+  {
+    lint val = VariableRegistry::getConstVal(argument);
+
+    for(lint i = 0; i < val; i++)
+    {
+      instructions.addInstruction(Instr::DEC);
+    }
+  }
+  else
+  {
+    Instr i = VariableRegistry::isPointer(argument) ? Instr::SUBI : Instr::SUB;
+    instructions.addInstruction(i,variables.getIndex(argument));
+  }
 }
 
 lint IntInstr::addStoreInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument)
@@ -658,27 +681,19 @@ InstructionRegistry IntInstr::translate(VariableRegistry& variables)
       if(!this->val1.empty()) IntInstr::addStoreInstruction(variables,out,this->val1);
       break;
     case IntInstrType::ADD:
-      if(!VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3))
+      if(!VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3) && VariableRegistry::getConstVal(this->val3) > 5)
       {
         tmp = this->val2;
         this->val2 = this->val3;
         this->val3 = tmp;
       }
-      if(VariableRegistry::isConst(this->val2) && VariableRegistry::getConstVal(this->val2) == 1)
-      {
-        IntInstr::addLoadInstruction(variables,out,this->val3);
-        out.addInstruction(Instr::INC);
-      }
-      else
-      {
-        IntInstr::addLoadInstruction(variables,out,this->val2);
-        IntInstr::addAddInstruction(variables,out,this->val3);
-      }
+      IntInstr::addLoadInstruction(variables,out,this->val2);
+      IntInstr::addAddInstruction(variables,out,this->val3);
       IntInstr::addStoreInstruction(variables,out,this->val1);
       break;
     case IntInstrType::SUB:
       val3 = this->val3;
-      if(!VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3))
+      if(!VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3) && VariableRegistry::getConstVal(this->val3) > 26)
       {
         tmp = variables.getAssemblerTemp();
         IntInstr::addLoadInstruction(variables,out,this->val3);

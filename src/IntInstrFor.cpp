@@ -39,7 +39,7 @@ InstructionRegistry IntInstrFor::translate(VariableRegistry& variables)
   if(downTo) //TODO better way
   {
     std::string val2 = this->val2;
-    if(VariableRegistry::isConst(this->val2))
+    if(VariableRegistry::isConst(this->val2)) //TODO change it to IntInstrType::SUB or include case with val2 < 26
     {
       std::string tmp = variables.getAssemblerTemp();
       IntInstr::addLoadInstruction(variables,ir,this->val2);
