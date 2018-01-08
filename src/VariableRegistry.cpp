@@ -128,6 +128,17 @@ void VariableRegistry::unsetIterator(std::string name)
    this->activeIterators.erase(name);
 }
 
+std::string VariableRegistry::genVariable()
+{
+   std::string name = "VAR"+std::to_string(this->varCounter);
+
+   this->addVariable(name);
+
+   this->varCounter++;
+
+   return name;
+}
+
 lint VariableRegistry::getForCounter()
 {
    std::string name = "CTR"+std::to_string(this->lastFreeCounter);

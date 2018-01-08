@@ -27,6 +27,8 @@ class VariableRegistry
 
   lint lastFreeCounter = 0;
 
+  lint varCounter = 0;
+
 public:
   VariableRegistry();
 
@@ -43,6 +45,8 @@ public:
 
   lint setIterator(std::string name);
   void unsetIterator(std::string name);
+
+  std::string genVariable();
 
   lint getForCounter();
 
