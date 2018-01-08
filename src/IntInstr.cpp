@@ -827,6 +827,11 @@ void IntInstr::optimize()
         this->val2 = VariableRegistry::toConst(VariableRegistry::getConstVal(this->val2) + VariableRegistry::getConstVal(this->val3));
         this->val3 = "";
       }
+      else if(this->val2 == this->val3)
+      {
+        this->type = IntInstrType::MUL;
+        this->val3 = VariableRegistry::toConst(2);
+      }
       break;
     case IntInstrType::SUB:
       if(VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3))
@@ -856,7 +861,7 @@ void IntInstr::optimize()
         this->type = IntInstrType::SET;
         this->val2 = VariableRegistry::toConst(0);
       }
-      if(VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3))
+      else if(VariableRegistry::isConst(this->val2) && VariableRegistry::isConst(this->val3))
       {
         this->type = IntInstrType::SET;
         if(VariableRegistry::getConstVal(this->val3) == 0) this->val2 = VariableRegistry::toConst(0);
