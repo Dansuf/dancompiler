@@ -279,3 +279,65 @@ void IntInstrIf::optimize()
   this->block.optimize();
   this->elBlock.optimize();
 }
+
+void IntInstrIf::propagateConstants(std::unordered_map<std::string, std::string>& constants)
+{
+  for(auto it = constants.begin(); it != constants.end();) //TODO actual propagation
+  {
+    if(this->block.modifiesVariable(it->first))
+    {
+      constants.erase((it++)->first);
+    }
+    else if(this->elBlock.modifiesVariable(it->first))
+    {
+      constants.erase((it++)->first);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+
+  this->subBlock.propagateConstants(constants);
+  for(auto it = constants.begin(); it != constants.end();)
+  {
+    if(VariableRegistry::isTemp(it->first))
+    {
+      constants.erase((it++)->first);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+  this->revSubBlock.propagateConstants(constants);
+  for(auto it = constants.begin(); it != constants.end();)
+  {
+    if(VariableRegistry::isTemp(it->first))
+    {
+      constants.erase((it++)->first);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+
+  for(auto& constant : constants)
+  {
+    if(constant.first == this->val1) this->val1 = constant.second;
+    if(constant.first == this->val2) this->val2 = constant.second;
+  }
+
+  this->optimize();
+}
+
+bool IntInstrIf::modifiesVariable(std::string name)
+{
+
+  if(this->block.modifiesVariable(name) || this->elBlock.modifiesVariable(name))
+  {
+    return true;
+  }
+  return false;
+}

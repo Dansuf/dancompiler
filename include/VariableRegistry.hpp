@@ -43,6 +43,8 @@ public:
   std::string getAssemblerTemp();
   void freeAssemblerTemps();
 
+  static bool isTemp(std::string name);
+
   lint setIterator(std::string name);
   void unsetIterator(std::string name);
 

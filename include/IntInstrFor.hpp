@@ -21,4 +21,11 @@ public:
   InstructionRegistry translate(VariableRegistry& variables) override;
 
   void optimize() override;
+
+  void propagateConstants(std::unordered_map<std::string, std::string>& constants) override;
+
+  bool modifiesVariable(std::string name) override;
+
+  // void useOfConstants(std::unordered_map<std::string, lint> usage);
+  // void replaceConstWithVar(std::string constant, std::string variable);
 };

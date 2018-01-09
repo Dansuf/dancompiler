@@ -273,8 +273,16 @@ void DC::DCDriver::halt(IntInstrBlock block)
    //arrayInit.dbgPrint();
 
    arrayInit.optimize();
+
+   // arrayInit.dbgPrint();
+   // printf("========================\n");
+   std::unordered_map<std::string,std::string> map;
+   arrayInit.propagateConstants(map);
+   // arrayInit.dbgPrint();
+
    this->instructions = arrayInit.translate(variables);
    this->instructions.optimize();
+
    this->instructions.translateLabels();
 }
 

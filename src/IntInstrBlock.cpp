@@ -49,3 +49,21 @@ void IntInstrBlock::optimize()
     instruction->optimize();
   }
 }
+
+void IntInstrBlock::propagateConstants(std::unordered_map<std::string, std::string>& constants)
+{
+  for(auto instruction : instructions)
+  {
+    instruction->propagateConstants(constants);
+  }
+}
+
+bool IntInstrBlock::modifiesVariable(std::string name)
+{
+  for(auto instruction : instructions)
+  {
+    if(instruction->modifiesVariable(name)) return true;
+  }
+
+  return false;
+}

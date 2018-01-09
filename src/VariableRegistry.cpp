@@ -89,6 +89,11 @@ void VariableRegistry::freeAssemblerTemps()
    lastAssemblerTempAddr = INT_TEMPS;
 }
 
+bool VariableRegistry::isTemp(std::string name)
+{
+   return name.find("TMP") != std::string::npos;
+}
+
 /**
   * @return index of added variable
  **/

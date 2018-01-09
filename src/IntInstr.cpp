@@ -884,4 +884,57 @@ void IntInstr::optimize()
       }
       break;
   }
+
+}
+
+void IntInstr::propagateConstants(std::unordered_map<std::string, std::string>& constants)
+{
+  if(this->type == IntInstrType::HALT) return;
+
+  if(this->type == IntInstrType::GET)
+  {
+    constants.erase(this->val1);
+    return;
+  }
+
+  if(this->type == IntInstrType::ADD || this->type == IntInstrType::SUB || this->type == IntInstrType::DIV || this->type == IntInstrType::MUL || this->type == IntInstrType::MOD)
+  for(auto& constant : constants)
+  {
+    if(constant.first == this->val2) this->val2 = constant.second;
+    if(constant.first == this->val3) this->val3 = constant.second;
+  }
+
+  if(this->type == IntInstrType::SET)
+  for(auto& constant : constants)
+  {
+    if(constant.first == this->val2) this->val2 = constant.second;
+  }
+
+  if(this->type == IntInstrType::PUT)
+  for(auto& constant : constants)
+  {
+    if(constant.first == this->val1) this->val1 = constant.second;
+  }
+
+  this->optimize();
+
+  if(this->type == IntInstrType::SET && VariableRegistry::isConst(this->val2) && this->val1 != "")
+  {
+    constants.erase(this->val1);
+    constants.insert(std::make_pair(this->val1,this->val2));
+  }
+  else if(this->val1 != "") // Instructions that save sth to val1
+  {
+    constants.erase(this->val1);
+  }
+
+}
+
+bool IntInstr::modifiesVariable(std::string name)
+{
+  if(this->type == IntInstrType::PUT || this->val1 == "") return false;
+
+  if(name == this->val1) return true;
+
+  return false;
 }

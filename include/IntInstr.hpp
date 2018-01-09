@@ -16,6 +16,10 @@ public:
   virtual void dbgPrint() = 0;
   virtual InstructionRegistry translate(VariableRegistry& variables) = 0;
   virtual void optimize() = 0;
+  virtual void propagateConstants(std::unordered_map<std::string, std::string>& constants) = 0;
+  virtual bool modifiesVariable(std::string name) = 0;
+  // virtual void useOfConstants(std::unordered_map<std::string, lint> usage) = 0;
+  // virtual void replaceConstWithVar(std::string constant, std::string variable) = 0;
 };
 
 class IntInstr : IntInstrAbstr
@@ -56,4 +60,11 @@ public:
   InstructionRegistry translate(VariableRegistry& variables) override;
 
   void optimize() override;
+
+  void propagateConstants(std::unordered_map<std::string, std::string>& constants) override;
+
+  bool modifiesVariable(std::string name) override;
+
+  void useOfConstants(std::unordered_map<std::string, lint> usage);
+  void replaceConstWithVar(std::string constant, std::string variable);
 };

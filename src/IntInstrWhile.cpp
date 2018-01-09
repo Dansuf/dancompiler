@@ -376,7 +376,75 @@ InstructionRegistry IntInstrWhile::translate(VariableRegistry& variables)
 
 void IntInstrWhile::optimize()
 {
+  this->valInitBlock.optimize();
   this->subBlock.optimize();
   this->revSubBlock.optimize();
   this->block.optimize();
+}
+
+void IntInstrWhile::propagateConstants(std::unordered_map<std::string, std::string>& constants)
+{
+  for(auto it = constants.begin(); it != constants.end();)
+  {
+    if(this->block.modifiesVariable(it->first)) //TODO different first run of the loop
+    {
+      constants.erase((it++)->first);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+
+  this->valInitBlock.propagateConstants(constants);
+  for(auto it = constants.begin(); it != constants.end();)
+  {
+    if(VariableRegistry::isTemp(it->first))
+    {
+      constants.erase((it++)->first);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+  this->subBlock.propagateConstants(constants);
+  for(auto it = constants.begin(); it != constants.end();)
+  {
+    if(VariableRegistry::isTemp(it->first))
+    {
+      constants.erase((it++)->first);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+  this->revSubBlock.propagateConstants(constants);
+  for(auto it = constants.begin(); it != constants.end();)
+  {
+    if(VariableRegistry::isTemp(it->first))
+    {
+      constants.erase((it++)->first);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+
+  this->block.propagateConstants(constants);
+
+  for(auto& constant : constants)
+  {
+    if(constant.first == this->val1) this->val1 = constant.second;
+    if(constant.first == this->val2) this->val2 = constant.second;
+  }
+
+  this->optimize();
+}
+
+bool IntInstrWhile::modifiesVariable(std::string name)
+{
+  return this->block.modifiesVariable(name);
 }
