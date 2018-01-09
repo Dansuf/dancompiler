@@ -139,6 +139,17 @@ std::string VariableRegistry::genVariable()
    return name;
 }
 
+std::string VariableRegistry::getArrayIndexVar(std::string array, lint index)
+{
+   this->assertArrayVariable(array, VariableRegistry::toConst(index));
+
+   lint varIndex = this->indexes.at(array) + index + 1;
+   std::string varName = array + "["+std::to_string(index)+"]";
+   this->indexes.insert(std::make_pair(varName, varIndex));
+
+   return varName;
+}
+
 lint VariableRegistry::getForCounter()
 {
    std::string name = "CTR"+std::to_string(this->lastFreeCounter);
@@ -172,7 +183,7 @@ void VariableRegistry::setInitialized(std::string name)
 
 void VariableRegistry::assertInitialized(std::string name)
 {
-   if(!VariableRegistry::isPointer(name) && !VariableRegistry::isConst(name) && this->initialized.count(name) == 0)
+   if(!VariableRegistry::isPointer(name) && !VariableRegistry::isConst(name) && (name.find_first_of("[") == std::string::npos) && this->initialized.count(name) == 0)
    {
       throw CompilerException("Variable '"+name+"' is not initialized!");
    }

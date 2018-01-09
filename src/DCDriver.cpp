@@ -238,10 +238,7 @@ Value DC::DCDriver::parseArrayLookup(std::string variable,std::string index)
 {
    this->variables.assertArrayVariable(variable, index);
 
-   if(!VariableRegistry::isConst(index))
-   {
-      this->variables.assertLoadableVariable(index);
-   }
+   this->variables.assertLoadableVariable(index);
 
    std::string temp = this->variables.getIntTemp();
 
@@ -250,7 +247,11 @@ Value DC::DCDriver::parseArrayLookup(std::string variable,std::string index)
 
 Value DC::DCDriver::parseArrayLookup(std::string variable, lint index)
 {
-   return this->parseArrayLookup(variable, std::to_string(index));
+   this->variables.assertArrayVariable(variable, VariableRegistry::toConst(index));
+
+   std::string name = this->variables.getArrayIndexVar(variable,index);
+
+   return Value(name);
 }
 
 void DC::DCDriver::halt(IntInstrBlock block)

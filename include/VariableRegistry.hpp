@@ -48,6 +48,8 @@ public:
 
   std::string genVariable();
 
+  std::string getArrayIndexVar(std::string array, lint index);
+
   lint getForCounter();
 
   lint newLabel();
