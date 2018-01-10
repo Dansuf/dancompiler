@@ -5,13 +5,11 @@ IntInstrFor::IntInstrFor(std::string iterator, std::string val1, std::string val
 {
   if(!downTo)
   {
-    this->subBlock = valInitBlock;
-    this->subBlock.addInstr((IntInstrAbstr*) new IntInstr(IntInstrType::SET,iterator,val1));
+    this->valInitBlock = valInitBlock;
   }
   else
   {
-    this->subBlock = valInitBlock;
-    this->subBlock.addInstr((IntInstrAbstr*) new IntInstr(IntInstrType::SET,iterator,val1));
+    this->valInitBlock = valInitBlock;
   }
 }
 
@@ -31,52 +29,108 @@ InstructionRegistry IntInstrFor::translate(VariableRegistry& variables)
 {
   //TODO don't create iterator variable if not used
   lint loop = variables.newLabel();
+  lint loop1 = variables.newLabel();
   lint endfor = variables.newLabel();
+  lint altfor = variables.newLabel();
+  lint endaltfor = variables.newLabel();
 
-  lint ctr = variables.getForCounter();
+  lint loopAddr, loop1Addr, endforAddr, altforAddr, endaltforAddr;
 
   InstructionRegistry ir;
-  if(downTo) //TODO better way
+
+  if(!downTo && VariableRegistry::isConst(this->val1) && VariableRegistry::isConst(this->val2) && VariableRegistry::getConstVal(this->val1) > VariableRegistry::getConstVal(this->val2)
+      || downTo &&  VariableRegistry::isConst(this->val1) && VariableRegistry::isConst(this->val2) && VariableRegistry::getConstVal(this->val1) < VariableRegistry::getConstVal(this->val2))
   {
-    std::string val2 = this->val2;
-    if(VariableRegistry::isConst(this->val2)) //TODO change it to IntInstrType::SUB or include case with val2 < 26
-    {
-      std::string tmp = variables.getAssemblerTemp();
-      IntInstr::addLoadInstruction(variables,ir,this->val2);
-      IntInstr::addStoreInstruction(variables,ir,tmp);
-      val2 = tmp;
-    }
-    ir.append(this->subBlock.translate(variables));
-    ir.addInstruction(Instr::INC);
-    IntInstr::addSubInstruction(variables,ir,val2);
+    return InstructionRegistry();
+  }
+  else if(downTo && VariableRegistry::isConst(this->val2) && VariableRegistry::getConstVal(this->val2) == 0)
+  {
+    IntInstr::addLoadInstruction(variables,ir,this->val1);
+    ir.addInstruction(Instr::JZERO,endaltfor);
+    loop1Addr = ir.addInstruction(Instr::STORE,variables.getIndex(this->iterator));
+    ir.append(this->block.translate(variables));
+    ir.addInstruction(Instr::LOAD,variables.getIndex(this->iterator));
+    ir.addInstruction(Instr::DEC);
+    ir.addInstruction(Instr::JZERO,endaltfor);
+    endaltforAddr = ir.addInstruction(Instr::JUMP,loop1) + 1;
+    ir.addInstruction(Instr::STORE,variables.getIndex(this->iterator));
+    endforAddr = ir.append(this->block.translate(variables)) + 1;
   }
   else
   {
-    ir = this->subBlock.translate(variables);
-    IntInstr::addLoadInstruction(variables,ir,val2);
-    ir.addInstruction(Instr::INC);
-    ir.addInstruction(Instr::SUB,variables.getIndex(iterator));
+    lint tmp = variables.getForCounter(); // it's not a counter exactly but well
+
+    ir = this->valInitBlock.translate(variables);
+    IntInstr::addLoadInstruction(variables,ir,this->val2);
+    if(downTo) ir.addInstruction(Instr::JZERO,altfor);
+    ir.addInstruction(Instr::STORE,tmp);
+    IntInstr::addLoadInstruction(variables,ir,this->val1);
+    ir.addInstruction(Instr::STORE,variables.getIndex(this->iterator));
+    if(downTo)
+    {
+      ir.addInstruction(Instr::INC);
+    }
+    ir.addInstruction(Instr::SUB,tmp);
+
+    if(downTo)
+    {
+      loopAddr = ir.addInstruction(Instr::JZERO,endfor) + 1;
+    }
+    else
+    {
+      ir.addInstruction(Instr::JZERO,loop);
+      loopAddr = ir.addInstruction(Instr::JUMP,endfor) + 1;
+    }
+    ir.append(this->block.translate(variables));
+    ir.addInstruction(Instr::LOAD,variables.getIndex(this->iterator));
+    if(downTo)
+    {
+      ir.addInstruction(Instr::DEC);
+    }
+    else
+    {
+      ir.addInstruction(Instr::INC);
+    }
+    ir.addInstruction(Instr::STORE,variables.getIndex(this->iterator));
+    if(downTo)
+    {
+      ir.addInstruction(Instr::INC);
+      ir.addInstruction(Instr::SUB,tmp);
+      ir.addInstruction(Instr::JZERO,endfor);
+      altforAddr = ir.addInstruction(Instr::JUMP,loop) + 1;
+
+      IntInstr::addLoadInstruction(variables,ir,this->val1);
+      ir.addInstruction(Instr::JZERO,endaltfor);
+      loop1Addr = ir.addInstruction(Instr::STORE,variables.getIndex(this->iterator));
+      ir.append(this->block.translate(variables));
+      ir.addInstruction(Instr::LOAD,variables.getIndex(this->iterator));
+      ir.addInstruction(Instr::DEC);
+      ir.addInstruction(Instr::JZERO,endaltfor);
+      endaltforAddr = ir.addInstruction(Instr::JUMP,loop1) + 1;
+      ir.addInstruction(Instr::STORE,variables.getIndex(this->iterator));
+      endforAddr = ir.append(this->block.translate(variables)) + 1;
+    }
+    else
+    {
+      ir.addInstruction(Instr::SUB,tmp);
+      endforAddr = ir.addInstruction(Instr::JZERO,loop) + 1;
+    }
   }
-  lint loopAddr = ir.addInstruction(Instr::JZERO,endfor) + 1;
-  ir.addInstruction(Instr::STORE,ctr);
-  ir.append(this->block.translate(variables));
-  ir.addInstruction(Instr::LOAD,variables.getIndex(iterator));
-  if(downTo) ir.addInstruction(Instr::DEC);
-  else ir.addInstruction(Instr::INC);
-  ir.addInstruction(Instr::STORE,variables.getIndex(iterator));
-  ir.addInstruction(Instr::LOAD,ctr);
-  ir.addInstruction(Instr::DEC);
-  ir.addInstruction(Instr::JZERO,endfor);
-  lint endforAddr = ir.addInstruction(Instr::JUMP,loop) + 1;
 
   ir.setLabel(loopAddr,loop);
   ir.setLabel(endforAddr,endfor);
+  if(downTo)
+  {
+    ir.setLabel(loop1Addr,loop1);
+    ir.setLabel(endaltforAddr,endaltfor);
+    ir.setLabel(altforAddr,altfor);
+  }
 
   return ir;
 }
 
 void IntInstrFor::optimize()
 {
-  this->subBlock.optimize();
+  this->valInitBlock.optimize();
   this->block.optimize();
 }

@@ -5,7 +5,7 @@
 
 class IntInstrFor : IntInstrAbstr
 {
-  IntInstrBlock subBlock;
+  IntInstrBlock valInitBlock;
 
   std::string iterator;
   std::string val1, val2;
