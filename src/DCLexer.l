@@ -186,4 +186,7 @@ ENDFOR      {
 .           {
                return( token::ERROR );
             }
+<comment><<EOF>>  {
+                     return( token::ERROR );
+                  }
 %%
