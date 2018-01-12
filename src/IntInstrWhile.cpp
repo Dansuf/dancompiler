@@ -3,26 +3,23 @@
 IntInstrWhile::IntInstrWhile(std::string val1, std::string val2, Comparator comp, IntInstrBlock block, IntInstrBlock valInitBlock): val1(val1), val2(val2), comp(comp), block(block)
 {
   this->valInitBlock = valInitBlock;
-  switch(this->comp)
-  {
-    case Comparator::EQ:
-    case Comparator::NEQ:
-      this->subBlock = valInitBlock;
-      this->subBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val2,this->val1));
-      this->revSubBlock = valInitBlock;
-      this->revSubBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val1,this->val2));
-      break;
-    case Comparator::LT:
-    case Comparator::GTE:
-      this->subBlock = valInitBlock;
-      this->subBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val2,this->val1));
-      break;
-    case Comparator::GT:
-    case Comparator::LTE:
-      this->subBlock = valInitBlock;
-      this->subBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val1,this->val2));
-      break;
-  }
+  this->subBlock = valInitBlock;
+  this->subBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val2,this->val1));
+  this->revSubBlock = valInitBlock;
+  this->revSubBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val1,this->val2));
+
+  //     break;
+  //   case Comparator::LT:
+  //   case Comparator::GTE:
+  //     this->subBlock = valInitBlock;
+  //     this->subBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val2,this->val1));
+  //     break;
+  //   case Comparator::GT:
+  //   case Comparator::LTE:
+  //     this->subBlock = valInitBlock;
+  //     this->subBlock.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SUB,"",this->val1,this->val2));
+  //     break;
+  // }
 }
 
 void IntInstrWhile::dbgPrint()
@@ -227,13 +224,43 @@ InstructionRegistry IntInstrWhile::translateLt(VariableRegistry& variables)
   lint endwhile = variables.newLabel();
   lint whil = variables.newLabel();
 
-  InstructionRegistry ir = this->subBlock.translate(variables);
+  InstructionRegistry ir;
 
-  lint whileAddr = ir.addInstruction(Instr::JZERO,endwhile) + 1;
-  ir.append(this->block.translate(variables));
-  ir.append(this->subBlock.translate(variables));
-  ir.addInstruction(Instr::JZERO,endwhile);
-  lint endwhileAddr = ir.addInstruction(Instr::JUMP,whil) + 1;
+  lint whileAddr, endwhileAddr;
+
+  if(VariableRegistry::isConst(this->val2) && VariableRegistry::getConstVal(this->val2) <= 2 )
+  {
+    int val = VariableRegistry::getConstVal(this->val2);
+
+    ir = this->valInitBlock.translate(variables);
+    IntInstr::addLoadInstruction(variables,ir,this->val1);
+    ir.addInstruction(Instr::JZERO,whil);
+    for(int i = 1; i < val; i++)
+    {
+      ir.addInstruction(Instr::DEC);
+      ir.addInstruction(Instr::JZERO,whil);
+    }
+    whileAddr = ir.addInstruction(Instr::JUMP,endwhile) + 1;
+    ir.append(this->block.translate(variables));
+    ir.append(this->valInitBlock.translate(variables));
+    IntInstr::addLoadInstruction(variables,ir,this->val1);
+    endwhileAddr = ir.addInstruction(Instr::JZERO,whil) + 1;
+    for(int i = 1; i < val; i++)
+    {
+      ir.addInstruction(Instr::DEC);
+      endwhileAddr = ir.addInstruction(Instr::JZERO,whil) + 1;
+    }
+  }
+  else
+  {
+    ir = this->subBlock.translate(variables);
+
+    whileAddr = ir.addInstruction(Instr::JZERO,endwhile) + 1;
+    ir.append(this->block.translate(variables));
+    ir.append(this->subBlock.translate(variables));
+    ir.addInstruction(Instr::JZERO,endwhile);
+    endwhileAddr = ir.addInstruction(Instr::JUMP,whil) + 1;
+  }
 
   ir.setLabel(endwhileAddr,endwhile);
   ir.setLabel(whileAddr,whil);
@@ -246,11 +273,11 @@ InstructionRegistry IntInstrWhile::translateGt(VariableRegistry& variables)
   lint endwhile = variables.newLabel();
   lint whil = variables.newLabel();
 
-  InstructionRegistry ir = this->subBlock.translate(variables);
+  InstructionRegistry ir = this->revSubBlock.translate(variables);
 
   lint whileAddr = ir.addInstruction(Instr::JZERO,endwhile) + 1;
   ir.append(this->block.translate(variables));
-  ir.append(this->subBlock.translate(variables));
+  ir.append(this->revSubBlock.translate(variables));
   ir.addInstruction(Instr::JZERO,endwhile);
   lint endwhileAddr = ir.addInstruction(Instr::JUMP,whil) + 1;
 
@@ -265,11 +292,11 @@ InstructionRegistry IntInstrWhile::translateLte(VariableRegistry& variables)
   lint cmds = variables.newLabel();
   lint endwhile = variables.newLabel();
 
-  InstructionRegistry ir = this->subBlock.translate(variables);
+  InstructionRegistry ir = this->revSubBlock.translate(variables);
   ir.addInstruction(Instr::JZERO,cmds);
   lint cmdsAddr = ir.addInstruction(Instr::JUMP,endwhile) + 1;
   ir.append(this->block.translate(variables));
-  ir.append(this->subBlock.translate(variables));
+  ir.append(this->revSubBlock.translate(variables));
   lint endwhileAddr = ir.addInstruction(Instr::JZERO,cmds) + 1;
 
   ir.setLabel(cmdsAddr,cmds);
@@ -283,12 +310,42 @@ InstructionRegistry IntInstrWhile::translateGte(VariableRegistry& variables)
   lint cmds = variables.newLabel();
   lint endwhile = variables.newLabel();
 
-  InstructionRegistry ir = this->subBlock.translate(variables);
-  ir.addInstruction(Instr::JZERO,cmds);
-  lint cmdsAddr = ir.addInstruction(Instr::JUMP,endwhile) + 1;
-  ir.append(this->block.translate(variables));
-  ir.append(this->subBlock.translate(variables));
-  lint endwhileAddr = ir.addInstruction(Instr::JZERO,cmds) + 1;
+  InstructionRegistry ir;
+
+  lint cmdsAddr, endwhileAddr;
+
+  if(VariableRegistry::isConst(this->val2) && VariableRegistry::getConstVal(this->val2) <= 3 )
+  {
+    int val = VariableRegistry::getConstVal(this->val2);
+
+    ir = this->valInitBlock.translate(variables);
+    IntInstr::addLoadInstruction(variables,ir,this->val1);
+    cmdsAddr = ir.addInstruction(Instr::JZERO,endwhile) + 1;
+    for(int i = 1; i < val; i++)
+    {
+      ir.addInstruction(Instr::DEC);
+      cmdsAddr = ir.addInstruction(Instr::JZERO,endwhile) + 1;
+    }
+    ir.append(this->block.translate(variables));
+    ir.append(this->valInitBlock.translate(variables));
+    IntInstr::addLoadInstruction(variables,ir,this->val1);
+    ir.addInstruction(Instr::JZERO,endwhile);
+    for(int i = 1; i < val; i++)
+    {
+      ir.addInstruction(Instr::DEC);
+      ir.addInstruction(Instr::JZERO,endwhile);
+    }
+    endwhileAddr = ir.addInstruction(Instr::JUMP,cmds) + 1;
+  }
+  else
+  {
+    ir = this->subBlock.translate(variables);
+    ir.addInstruction(Instr::JZERO,cmds);
+    cmdsAddr = ir.addInstruction(Instr::JUMP,endwhile) + 1;
+    ir.append(this->block.translate(variables));
+    ir.append(this->subBlock.translate(variables));
+    endwhileAddr = ir.addInstruction(Instr::JZERO,cmds) + 1;
+  }
 
   ir.setLabel(cmdsAddr,cmds);
   ir.setLabel(endwhileAddr,endwhile);
@@ -339,6 +396,14 @@ InstructionRegistry IntInstrWhile::translate(VariableRegistry& variables)
           return InstructionRegistry();
         }
       }
+      if(VariableRegistry::isConst(this->val1) && !VariableRegistry::isConst(this->val2))
+      {
+        std::string tmp = this->val1;
+        this->val1 = this->val2;
+        this->val2 = tmp;
+        return this->translateGt(variables);
+      }
+      else
       return this->translateLt(variables);
       break;
     case Comparator::GT:
@@ -349,6 +414,14 @@ InstructionRegistry IntInstrWhile::translate(VariableRegistry& variables)
           return InstructionRegistry();
         }
       }
+      if(VariableRegistry::isConst(this->val1) && !VariableRegistry::isConst(this->val2))
+      {
+        std::string tmp = this->val1;
+        this->val1 = this->val2;
+        this->val2 = tmp;
+        return this->translateLt(variables);
+      }
+      else
       return this->translateGt(variables);
       break;
     case Comparator::LTE:
@@ -359,6 +432,14 @@ InstructionRegistry IntInstrWhile::translate(VariableRegistry& variables)
           return InstructionRegistry();
         }
       }
+      if(VariableRegistry::isConst(this->val1) && !VariableRegistry::isConst(this->val2))
+      {
+        std::string tmp = this->val1;
+        this->val1 = this->val2;
+        this->val2 = tmp;
+        return this->translateGte(variables);
+      }
+      else
       return this->translateLte(variables);
       break;
     case Comparator::GTE:
@@ -369,6 +450,14 @@ InstructionRegistry IntInstrWhile::translate(VariableRegistry& variables)
           return InstructionRegistry();
         }
       }
+      if(VariableRegistry::isConst(this->val1) && !VariableRegistry::isConst(this->val2))
+      {
+        std::string tmp = this->val1;
+        this->val1 = this->val2;
+        this->val2 = tmp;
+        return this->translateLte(variables);
+      }
+      else
       return this->translateGte(variables);
       break;
   }
@@ -376,6 +465,7 @@ InstructionRegistry IntInstrWhile::translate(VariableRegistry& variables)
 
 void IntInstrWhile::optimize()
 {
+  this->valInitBlock.optimize();
   this->subBlock.optimize();
   this->revSubBlock.optimize();
   this->block.optimize();
