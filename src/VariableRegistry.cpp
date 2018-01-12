@@ -185,7 +185,7 @@ void VariableRegistry::assertInitialized(std::string name)
 {
    if(!VariableRegistry::isPointer(name) && !VariableRegistry::isConst(name) && (name.find_first_of("[") == std::string::npos) && this->initialized.count(name) == 0)
    {
-      throw CompilerException("Variable '"+name+"' is not initialized!");
+      fprintf(stderr,"Warning: Variable '%s' may not be initialized!",name.c_str());
    }
 }
 

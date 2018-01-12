@@ -1,6 +1,6 @@
 # DanCompiler
 
-A simple compiler in C++ translating custom programming language to a custom assembler. Input is parsed using Flex and Bison.
+A simple compiler in C++ translating a custom imperative programming language to a simple machine registry assembler. Input is parsed using Flex and Bison.
 
 Created as a final project for university course "Formal Languages and Translation Techniques" during winter semester 2017/2018.
 
@@ -18,9 +18,13 @@ Make sure you have bison and flex installed, then compile the code:
 
     make
 
+Note: Please do not use the flag -j, it may fail.
+
 The program takes as an argument path to the source code and, optionally, path to the output file. If it is not specified, output will be directed to the standard output.
 
     ./dc input_file [output_file]
+
+In case of an error, a message will be printed on standard error output and the compilation will stop. Any warning messages will also be printed on standard error output. However, the compilation will continue.
 
 The program compiles successfully with the following configuration:
 
