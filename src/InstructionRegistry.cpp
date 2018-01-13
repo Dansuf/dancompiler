@@ -124,10 +124,13 @@ lint InstructionRegistry::append(InstructionRegistry ir)
 
 void InstructionRegistry::optimize()
 {
-  // Eliminate LOAD in STORE-LOAD pairs
+  std::unordered_map<lint,lint> unusedStored; // parameter, address of STORE
+
+
   for(lint i = 0; i < this->instructions.size()-1; i++)
   {
 
+    // Eliminate LOAD in STORE-LOAD pairs
     if(instructions[i].second == instructions[i+1].second && instructions[i].first == Instr::STORE && instructions[i+1].first == Instr::LOAD)
     {
 
@@ -136,6 +139,41 @@ void InstructionRegistry::optimize()
         this->deleteInstructions(i+1,i+1);
       }
     }
+
+    // Remove redundant STOREs
+    switch(instructions[i].first)
+    {
+      case Instr::STORE:
+        if(unusedStored.find(instructions[i].second) != unusedStored.end())
+        {
+          for(auto &elem : unusedStored)
+          {
+            if(elem.second > unusedStored[instructions[i].second])
+            {
+              elem.second -= 1;
+            }
+          }
+          this->deleteInstructions(unusedStored[instructions[i].second],unusedStored[instructions[i].second]);
+          unusedStored.erase(unusedStored.find(instructions[--i].second));
+        }
+        unusedStored.insert(std::make_pair(instructions[i].second,i));
+        break;
+      case Instr::JUMP:
+      case Instr::JZERO:
+      case Instr::JODD:
+      case Instr::LOADI:
+      case Instr::STOREI:
+      case Instr::ADDI:
+      case Instr::SUBI:
+        unusedStored.clear();
+        break;
+      case Instr::LOAD:
+      case Instr::ADD:
+      case Instr::SUB:
+        if(unusedStored.find(instructions[i].second) != unusedStored.end())
+        unusedStored.erase(unusedStored.find(instructions[i].second));
+    }
+
   }
 }
 
