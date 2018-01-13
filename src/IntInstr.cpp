@@ -6,6 +6,50 @@
 
 const std::string IntInstr::instrStr[] = {"GET","PUT","ADD","SUB","MUL","DIV","MOD","SET","HALT"};
 
+
+lint IntInstr::constGenCost(lint val)
+{
+  lint cost = 1;
+  std::vector<bool> bits;
+  lint ones = 0;
+
+  while(val > 0)
+  {
+    bits.push_back(val%2 == 0 ? false : true);
+    if(bits.back() == true) ones++;
+    else ones = 0;
+    val /= 2;
+  }
+
+  if(ones >= 4)
+  {
+    cost++;
+    for(lint i = 0;i < ones; i++)
+    {
+      cost++;
+    }
+    cost++;
+
+    if(ones != bits.size()) cost++;
+
+    for(auto it = bits.rbegin() + ones; it != bits.rend(); it++)
+    {
+      if(*it) cost++;
+      if(it+1 != bits.rend()) cost++;
+    }
+  }
+  else
+  {
+    for(auto it = bits.rbegin(); it != bits.rend(); it++)
+    {
+      if(*it) cost++;
+      if(it+1 != bits.rend()) cost++;
+    }
+  }
+
+  return cost;
+}
+
 /*
  * @return address to the first generated instruction
  */
@@ -343,7 +387,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
 
   std::string scaledDivisor = variables.getAssemblerTemp();
   std::string tmp, tmp2;
-  if(VariableRegistry::isConst(argument1) || VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument1) && VariableRegistry::getConstVal(argument1) > 26 || VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     tmp = variables.getAssemblerTemp();
   }
@@ -364,13 +408,13 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   lint finalloop = variables.newLabel();
 
 
-  if(VariableRegistry::isConst(argument1))
+  if(VariableRegistry::isConst(argument1) && VariableRegistry::getConstVal(argument1) > 26)
   {
     IntInstr::addLoadInstruction(variables,instructions,argument1);
     instructions.addInstruction(Instr::STORE,variables.getIndex(tmp));
   }
   IntInstr::addLoadInstruction(variables,instructions,argument2);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     instructions.addInstruction(Instr::STORE,variables.getIndex(tmp));
   }
@@ -381,7 +425,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::JZERO,divzero);
   instructions.addInstruction(Instr::SHL);
 
-  if(VariableRegistry::isConst(argument1))
+  if(VariableRegistry::isConst(argument1) && VariableRegistry::getConstVal(argument1) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -391,10 +435,17 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   }
   instructions.addInstruction(Instr::JZERO,normaldiv);
 
-  IntInstr::addLoadInstruction(variables,instructions,argument1);
+  if(VariableRegistry::isConst(argument1) && IntInstr::constGenCost(VariableRegistry::getConstVal(argument1)) >= 10)
+  {
+    instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp));
+  }
+  else
+  {
+    IntInstr::addLoadInstruction(variables,instructions,argument1);
+  }
   IntInstr::addStoreInstruction(variables,instructions,remainder);
   instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -416,7 +467,11 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     instructions.addInstruction(Instr::INC);
     IntInstr::addStoreInstruction(variables,instructions,out);
   }
-  if(out == argument2 || remainder == argument2)
+  if(VariableRegistry::isConst(argument2) && IntInstr::constGenCost(VariableRegistry::getConstVal(argument2)) >= 10)
+  {
+    instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp));
+  }
+  else if(out == argument2 || remainder == argument2)
   {
     instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp2));
   }
@@ -427,7 +482,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -447,7 +502,11 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     instructions.addInstruction(Instr::ZERO);
     IntInstr::addStoreInstruction(variables,instructions,out);
   }
-  if(out == argument2 || remainder == argument2)
+  if(VariableRegistry::isConst(argument2) && IntInstr::constGenCost(VariableRegistry::getConstVal(argument2)) >= 10)
+  {
+    instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp));
+  }
+  else if(out == argument2 || remainder == argument2)
   {
     instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp2));
   }
@@ -458,7 +517,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -473,11 +532,19 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::JZERO,end);
   instructions.addInstruction(Instr::JUMP,endwhile);
 
-  lint normaldivAddr = IntInstr::addLoadInstruction(variables,instructions,argument2);
+  lint normaldivAddr;
+  if(VariableRegistry::isConst(argument2) && IntInstr::constGenCost(VariableRegistry::getConstVal(argument2)) >= 10)
+  {
+    normaldivAddr = instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp));
+  }
+  else
+  {
+    normaldivAddr = IntInstr::addLoadInstruction(variables,instructions,argument2);
+  }
   instructions.addInstruction(Instr::SHL);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::SHL);
-  if(VariableRegistry::isConst(argument1))
+  if(VariableRegistry::isConst(argument1) && VariableRegistry::getConstVal(argument1) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -486,11 +553,18 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     IntInstr::addSubInstruction(variables,instructions,argument1);
   }
   instructions.addInstruction(Instr::JZERO,whil);
-  IntInstr::addLoadInstruction(variables,instructions,argument1);
+  if(VariableRegistry::isConst(argument1) && IntInstr::constGenCost(VariableRegistry::getConstVal(argument1)) >= 10)
+  {
+    instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp));
+  }
+  else
+  {
+    IntInstr::addLoadInstruction(variables,instructions,argument1);
+  }
   instructions.addInstruction(Instr::SUB,variables.getIndex(scaledDivisor));
   IntInstr::addStoreInstruction(variables,instructions,remainder);
   instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -518,7 +592,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SHL);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::SHL);
-  if(VariableRegistry::isConst(argument1))
+  if(VariableRegistry::isConst(argument1) && VariableRegistry::getConstVal(argument1) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -528,11 +602,18 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   }
   instructions.addInstruction(Instr::JZERO,whil);
 
-  IntInstr::addLoadInstruction(variables,instructions,argument1);
+  if(VariableRegistry::isConst(argument1) && IntInstr::constGenCost(VariableRegistry::getConstVal(argument1)) >= 10)
+  {
+    instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp));
+  }
+  else
+  {
+    IntInstr::addLoadInstruction(variables,instructions,argument1);
+  }
   instructions.addInstruction(Instr::SUB,variables.getIndex(scaledDivisor));
   IntInstr::addStoreInstruction(variables,instructions,remainder);
   instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -562,7 +643,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::DEC);
   IntInstr::addStoreInstruction(variables,instructions,remainder);
   instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -596,7 +677,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -622,7 +703,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -645,7 +726,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -672,7 +753,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
@@ -695,7 +776,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   instructions.addInstruction(Instr::SHR);
   instructions.addInstruction(Instr::STORE,variables.getIndex(scaledDivisor));
   instructions.addInstruction(Instr::INC);
-  if(VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2) && VariableRegistry::getConstVal(argument2) > 26)
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }

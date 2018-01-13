@@ -167,7 +167,6 @@ InstructionRegistry IntInstrWhile::translateNeq(VariableRegistry& variables)
     ir.append(this->valInitBlock.translate(variables));
     IntInstr::addLoadInstruction(variables,ir,this->val1);
 
-    endwhileAddr;
     for(int i = 0; i < constant; i++)
     {
       ir.addInstruction(Instr::JZERO,cmds);
