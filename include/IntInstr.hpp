@@ -29,7 +29,8 @@ class IntInstr : IntInstrAbstr
   std::string val3;
 
   static void addMulConstInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument, lint constant, std::string out);
-  static void addDivByConstInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument1, lint constant, std::string out, std::string remainder);
+  static void addDivByConstInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument1, lint constant, std::string out);
+  static void addModByConstInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument1, lint constant, std::string remainder);
   static lint constGenCost(lint value);
 
 public:

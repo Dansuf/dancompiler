@@ -341,7 +341,7 @@ void IntInstr::addMulInstruction(VariableRegistry& variables, InstructionRegistr
   variables.freeAssemblerTemps();
 }
 
-void IntInstr::addDivByConstInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument1, lint constant, std::string out, std::string remainder)
+void IntInstr::addDivByConstInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument1, lint constant, std::string out)
 {
   IntInstr::addLoadInstruction(variables, instructions, argument1);
 
@@ -351,6 +351,34 @@ void IntInstr::addDivByConstInstruction(VariableRegistry& variables, Instruction
     constant /= 2;
   }
   IntInstr::addStoreInstruction(variables, instructions, out);
+
+}
+
+void IntInstr::addModByConstInstruction(VariableRegistry& variables, InstructionRegistry& instructions, std::string argument1, lint constant, std::string remainder)
+{
+  IntInstr::addLoadInstruction(variables, instructions, argument1);
+
+  lint tmp = constant;
+
+  std::string tmpVar = variables.getAssemblerTemp();
+
+  while(tmp != 1)
+  {
+    instructions.addInstruction(Instr::SHR);
+    tmp /= 2;
+  }
+  tmp = constant;
+  while(tmp != 1)
+  {
+    instructions.addInstruction(Instr::SHL);
+    tmp /= 2;
+  }
+  instructions.addInstruction(Instr::STORE,variables.getIndex(tmpVar));
+
+  IntInstr::addLoadInstruction(variables, instructions, argument1);
+  instructions.addInstruction(Instr::SUB,variables.getIndex(tmpVar));
+
+  IntInstr::addStoreInstruction(variables, instructions, remainder);
 
 }
 
@@ -368,7 +396,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
     remainder = variables.getAssemblerTemp();
   }
 
-  if(remainderNeeded == false && VariableRegistry::isConst(argument2))
+  if(VariableRegistry::isConst(argument2))
   {
     lint val = VariableRegistry::getConstVal(argument2);
 
@@ -379,7 +407,10 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
 
     if(val == 1)
     {
-      IntInstr::addDivByConstInstruction(variables, instructions, argument1, VariableRegistry::getConstVal(argument2),out, remainder);
+      if(resultNeeded)
+        IntInstr::addDivByConstInstruction(variables, instructions, argument1, VariableRegistry::getConstVal(argument2),out);
+      if(remainderNeeded)
+        IntInstr::addModByConstInstruction(variables, instructions, argument1, VariableRegistry::getConstVal(argument2),remainder);
       variables.freeAssemblerTemps();
       return;
     }
