@@ -576,7 +576,14 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,argument2);
   }
-  instructions.addInstruction(Instr::JZERO,afinish);
+  if(resultNeeded)
+  {
+    instructions.addInstruction(Instr::JZERO,afinish);
+  }
+  else
+  {
+    instructions.addInstruction(Instr::JZERO,end);
+  }
   if(resultNeeded)
   {
     instructions.addInstruction(Instr::ZERO);
@@ -625,7 +632,14 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,argument2);
   }
-  instructions.addInstruction(Instr::JZERO,afinish);
+  if(resultNeeded)
+  {
+    instructions.addInstruction(Instr::JZERO,afinish);
+  }
+  else
+  {
+    instructions.addInstruction(Instr::JZERO,end);
+  }
   if(resultNeeded)
   {
     instructions.addInstruction(Instr::ZERO);
@@ -655,7 +669,14 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,argument2);
   }
-  instructions.addInstruction(Instr::JZERO,finish);
+  if(resultNeeded)
+  {
+    instructions.addInstruction(Instr::JZERO,finish);
+  }
+  else
+  {
+    instructions.addInstruction(Instr::JZERO,end);
+  }
   if(resultNeeded)
   {
     IntInstr::addLoadInstruction(variables,instructions,out);
