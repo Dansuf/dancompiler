@@ -1,15 +1,80 @@
 #include <utility>
 #include <stdexcept>
 #include <string>
+#include <vector>
+#include <cmath>
 
 #include "VariableRegistry.hpp"
 #include "CompilerException.hpp"
 
-VariableRegistry::VariableRegistry()
+VariableRegistry::VariableRegistry(Variables vars)
 {
-   for(int i = 0;i < INT_TEMPS + ASSEMBLER_TEMPS; i++)
+   for(auto& array : vars.arrays)
+   {
+      if(lastFreeIndex <= 256)
+      {
+         lint val = lastFreeIndex;
+         std::vector<bool> bits;
+         lint ones = 0;
+
+         while(val > 0)
+         {
+            bits.push_back(val%2 == 0 ? false : true);
+            if(val%2 != 0) ones++;
+            else ones = 0;
+            val /= 2;
+         }
+
+         if(ones == 0) // First run
+         {
+            lastFreeIndex = 0;
+         }
+         else if(ones > 1)
+         {
+            lastFreeIndex = (lint) pow(2,bits.size());
+         }
+         else
+         {
+            lastFreeIndex = (lint) pow(2,bits.size()-1);
+            for(lint j = bits.size()-2; j >= 0; j--)
+            {
+               if(bits[j] == 1)
+               {
+                  lastFreeIndex += (lint) pow(2,j+1);
+                  break;
+               }
+            }
+         }
+      }
+
+      this->indexes.insert(std::make_pair(array.first,lastFreeIndex));
+      this->arrays.insert(std::make_pair(array.first,array.second));
+
+      if(lastFreeIndex <= 256)
+      {
+         lastFreeIndex += array.second;
+      }
+      else
+      {
+         lastFreeIndex += array.second + 1;
+      }
+   }
+
+   this->firstTempAddr = lastFreeIndex;
+
+   for(int i = lastFreeIndex;i < lastFreeIndex + INT_TEMPS + ASSEMBLER_TEMPS; i++)
    {
       this->indexes.insert(std::make_pair("TMP"+std::to_string(i),i));
+   }
+
+   lastFreeIndex += INT_TEMPS + ASSEMBLER_TEMPS;
+
+   this->lastIntTempAddr = this->firstTempAddr;
+   this->lastAssemblerTempAddr = this->firstTempAddr + INT_TEMPS;
+
+   for(auto& variable : vars.variables)
+   {
+      this->indexes.insert(std::make_pair(variable,lastFreeIndex++));
    }
 }
 
@@ -28,23 +93,23 @@ lint VariableRegistry::addVariable(std::string name)
 
 }
 
-/**
-  * @return index of added variable
- **/
-lint VariableRegistry::addArrayVariable(std::string name, lint size)
-{
-   if(this->indexes.count(name) > 0)
-   {
-      throw CompilerException("Redeclaration of variable '" + name + "'!");
-   }
-   this->indexes.insert(std::make_pair(name,lastFreeIndex));
-   this->arrays.insert(std::make_pair(name,size));
-
-   lint currIndex = lastFreeIndex;
-   lastFreeIndex += size + 1;
-
-   return currIndex;
-}
+// /**
+//   * @return index of added variable
+//  **/
+// lint VariableRegistry::addArrayVariable(std::string name, lint size)
+// {
+//    if(this->indexes.count(name) > 0)
+//    {
+//       throw CompilerException("Redeclaration of variable '" + name + "'!");
+//    }
+//    this->indexes.insert(std::make_pair(name,lastFreeIndex));
+//    this->arrays.insert(std::make_pair(name,size));
+//
+//    lint currIndex = lastFreeIndex;
+//    lastFreeIndex += size + 1;
+//
+//    return currIndex;
+// }
 
 lint VariableRegistry::getIndex(std::string name)
 {
@@ -61,32 +126,32 @@ lint VariableRegistry::getIndex(std::string name)
 
 std::string VariableRegistry::getIntTemp()
 {
-   if(lastIntTempAddr == INT_TEMPS)
+   if(this->lastIntTempAddr == this->firstTempAddr + INT_TEMPS)
    {
       throw CompilerException("Internal error! Maximum number of intermediate form temporary variables exceeded.");
    }
 
-   return "TMP"+std::to_string(lastIntTempAddr++);
+   return "TMP"+std::to_string(this->lastIntTempAddr++);
 }
 
 void VariableRegistry::freeIntTemps()
 {
-   lastIntTempAddr = 0;
+   lastIntTempAddr = this->firstTempAddr;
 }
 
 std::string VariableRegistry::getAssemblerTemp()
 {
-   if(lastAssemblerTempAddr == INT_TEMPS + ASSEMBLER_TEMPS)
+   if(this->lastAssemblerTempAddr == this->firstTempAddr + INT_TEMPS + ASSEMBLER_TEMPS)
    {
       throw CompilerException("Internal error! Maximum number of assembler form temporary variables exceeded.");
    }
 
-   return "TMP"+std::to_string(lastAssemblerTempAddr++);
+   return "TMP"+std::to_string(this->lastAssemblerTempAddr++);
 }
 
 void VariableRegistry::freeAssemblerTemps()
 {
-   lastAssemblerTempAddr = INT_TEMPS;
+   this->lastAssemblerTempAddr = this->firstTempAddr + INT_TEMPS;
 }
 
 /**
@@ -143,7 +208,8 @@ std::string VariableRegistry::getArrayIndexVar(std::string array, lint index)
 {
    this->assertArrayVariable(array, VariableRegistry::toConst(index));
 
-   lint varIndex = this->indexes.at(array) + index + 1;
+   lint varIndex = this->indexes.at(array) + index;
+   if(varIndex > 256) varIndex += 1;
    std::string varName = array + "["+std::to_string(index)+"]";
    this->indexes.insert(std::make_pair(varName, varIndex));
 
@@ -206,14 +272,25 @@ void VariableRegistry::assertLoadableVariable(std::string name)
 
 void VariableRegistry::assertStorableVariable(std::string name)
 {
-   if(VariableRegistry::isPointer(name)) name = VariableRegistry::stripPointer(name);
-   if(this->indexes.count(name) == 0 || (this->iterators.count(name) > 0 && this->activeIterators.count(name) == 0))
+   if(VariableRegistry::isPointer(name))
    {
-      throw CompilerException("Trying to write to undeclared variable '"+name+"'");
+      name = VariableRegistry::stripPointer(name);
+      if(this->indexes.count(name) == 0 || (this->iterators.count(name) > 0 && this->activeIterators.count(name) == 0))
+      {
+         throw CompilerException("Trying to write to undeclared variable '"+name+"'");
+      }
    }
-   if(this->activeIterators.count(name) > 0)
+   else
    {
-      throw CompilerException("Trying to modify iterator '"+name+"'");
+      if(this->indexes.count(name) == 0 || (this->iterators.count(name) > 0 && this->activeIterators.count(name) == 0))
+      {
+         throw CompilerException("Trying to write to undeclared variable '"+name+"'");
+      }
+
+      if(this->activeIterators.count(name) > 0)
+      {
+         throw CompilerException("Trying to modify iterator '"+name+"'");
+      }
    }
 }
 

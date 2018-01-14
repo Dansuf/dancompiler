@@ -10,6 +10,7 @@
 #include "VariableRegistry.hpp"
 #include "IntInstrBlock.hpp"
 #include "Expression.hpp"
+#include "Variables.hpp"
 
 #include "DCParser.tab.hh"
 
@@ -32,8 +33,10 @@ public:
 
    void parse( const char * const filename );
 
-   void declareVariable(std::string variable);
-   void declareArray(std::string variable, lint size);
+   // void declareVariable(std::string variable);
+   // void declareArray(std::string variable, lint size);
+   void declareVariables(Variables vars);
+
    void declareIterator(std::string variable);
    void assertInitialized(Value value);
 

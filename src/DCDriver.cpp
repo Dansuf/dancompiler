@@ -62,14 +62,19 @@ void DC::DCDriver::parseHelper( std::istream &stream )
    }
 }
 
-void DC::DCDriver::declareVariable(std::string variable)
-{
-   this->variables.addVariable(variable);
-}
+// void DC::DCDriver::declareVariable(std::string variable)
+// {
+//    this->variables.addVariable(variable);
+// }
+//
+// void DC::DCDriver::declareArray(std::string variable, lint size)
+// {
+//    this->variables.addArrayVariable(variable,size);
+// }
 
-void DC::DCDriver::declareArray(std::string variable, lint size)
+void DC::DCDriver::declareVariables(Variables vars)
 {
-   this->variables.addArrayVariable(variable,size);
+   this->variables = VariableRegistry(vars);
 }
 
 void DC::DCDriver::declareIterator(std::string variable)
@@ -240,9 +245,22 @@ Value DC::DCDriver::parseArrayLookup(std::string variable,std::string index)
 
    this->variables.assertLoadableVariable(index);
 
-   std::string temp = this->variables.getIntTemp();
+   if(this->variables.getIndex(variable) == 0)
+   {
+      return Value("@"+index);
+   }
+   else if(this->variables.getIndex(variable) <= 256)
+   {
+      std::string temp = this->variables.getIntTemp();
 
-   return Value("@" + temp,(IntInstrAbstr*)new IntInstr(IntInstrType::ADD,temp,index,variable));
+      return Value("@" + temp,(IntInstrAbstr*)new IntInstr(IntInstrType::ADD,temp,VariableRegistry::toConst(this->variables.getIndex(variable)),index));
+   }
+   else
+   {
+      std::string temp = this->variables.getIntTemp();
+
+      return Value("@" + temp,(IntInstrAbstr*)new IntInstr(IntInstrType::ADD,temp,index,variable));
+   }
 }
 
 Value DC::DCDriver::parseArrayLookup(std::string variable, lint index)
@@ -262,6 +280,7 @@ void DC::DCDriver::halt(IntInstrBlock block)
    auto arrays = this->variables.getArrays();
    for(auto arr : arrays)
    {
+      if(arr.second > 256)
       arrayInit.addInstr((IntInstrAbstr*)new IntInstr(IntInstrType::SET,arr.first,VariableRegistry::toConst(variables.getIndex(arr.first)+1)));
    }
 

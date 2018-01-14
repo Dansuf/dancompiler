@@ -11,6 +11,7 @@
    #include "Value.hpp"
    #include "IntInstr.hpp"
    #include "IntInstrBlock.hpp"
+   #include "Variables.hpp"
    #include "general.hpp"
 
 
@@ -56,6 +57,7 @@
 %type<Condition>        condition
 %type<IntInstrBlock>    command
 %type<IntInstrBlock>    commands
+%type<Variables>        vdeclarations
 
 %token                  VAR
 %token                  BEG
@@ -105,10 +107,11 @@
 
 %%
 
-program: VAR vdeclarations BEG commands END                 { CATCH(driver.halt($4),@5) }
+program: VAR vdeclarations                                  { CATCH(driver.declareVariables($2),@2) }
+         BEG commands END                                   { CATCH(driver.halt($5),@6) }
 
-vdeclarations: vdeclarations PID                            { CATCH(driver.declareVariable($2),@2) }
-         | vdeclarations PID LSBR NUM RSBR                  { CATCH(driver.declareArray($2,$4),@2) }
+vdeclarations: vdeclarations PID                            { CATCH($1.addVariable($2),@2) $$ = $1; }
+         | vdeclarations PID LSBR NUM RSBR                  { CATCH($1.addArrayVariable($2,$4),@2) $$ = $1; }
          |
          ;
 commands:  commands command                                 { $1.append($2); $$ = $1; }

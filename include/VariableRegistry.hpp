@@ -4,13 +4,14 @@
 #include <set>
 
 #include "general.hpp"
+#include "Variables.hpp"
 
 #define INT_TEMPS 5
 #define ASSEMBLER_TEMPS 5
 
 class VariableRegistry
 {
-  lint lastFreeIndex = INT_TEMPS + ASSEMBLER_TEMPS;
+  lint lastFreeIndex = 0;
   std::unordered_map<std::string,lint> indexes;
 
   std::set<std::string> initialized;
@@ -20,6 +21,7 @@ class VariableRegistry
   std::set<std::string> iterators;
   std::set<std::string> activeIterators;
 
+  lint firstTempAddr;
   lint lastIntTempAddr = 0;
   lint lastAssemblerTempAddr = INT_TEMPS;
 
@@ -29,11 +31,12 @@ class VariableRegistry
 
   lint varCounter = 0;
 
-public:
-  VariableRegistry();
-
   lint addVariable(std::string name);
-  lint addArrayVariable(std::string name, lint size);
+  // lint addArrayVariable(std::string name, lint size);
+
+public:
+  VariableRegistry() {};
+  VariableRegistry(Variables vars);
 
   lint getIndex(std::string name);
 
