@@ -73,31 +73,24 @@ lint IntInstr::addLoadInstruction(VariableRegistry& variables, InstructionRegist
 
     firstAddr = instructions.addInstruction(Instr::ZERO);
 
-    if(ones >= 4)
+    for(int i = bits.size()-1; i >= 0; i--)
     {
-      instructions.addInstruction(Instr::INC);
-      for(lint i = 0;i < ones; i++)
-      {
+      if(i < bits.size()-1 && !(i >= 3 && bits[i] == true && bits[i-1] == true && bits[i-2] == true && bits[i-3] == true))
         instructions.addInstruction(Instr::SHL);
-      }
-      instructions.addInstruction(Instr::DEC);
 
-      if(ones != bits.size())instructions.addInstruction(Instr::SHL);
+      if(bits[i]) instructions.addInstruction(Instr::INC);
 
-      for(auto it = bits.rbegin() + ones; it != bits.rend(); it++)
+      if(i >= 3 && bits[i] == true && bits[i-1] == true && bits[i-2] == true && bits[i-3] == true)
       {
-        if(*it) instructions.addInstruction(Instr::INC);
-        if(it+1 != bits.rend())instructions.addInstruction(Instr::SHL);
+        for(;i >= 0 && bits[i] == true; i--)
+        {
+          instructions.addInstruction(Instr::SHL);
+        }
+        i++;
+        instructions.addInstruction(Instr::DEC);
       }
     }
-    else
-    {
-      for(auto it = bits.rbegin(); it != bits.rend(); it++)
-      {
-        if(*it) instructions.addInstruction(Instr::INC);
-        if(it+1 != bits.rend())instructions.addInstruction(Instr::SHL);
-      }
-    }
+
   }
   else
   {
