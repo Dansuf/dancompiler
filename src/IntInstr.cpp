@@ -415,7 +415,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     tmp = variables.getAssemblerTemp();
   }
-  if(out == argument2 || remainder == argument2)
+  if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     tmp2 = variables.getAssemblerTemp();
   }
@@ -442,7 +442,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     instructions.addInstruction(Instr::STORE,variables.getIndex(tmp));
   }
-  if(out == argument2 || remainder == argument2)
+  if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     instructions.addInstruction(Instr::STORE,variables.getIndex(tmp2));
   }
@@ -473,7 +473,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp2);
   }
@@ -495,7 +495,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp));
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp2));
   }
@@ -510,7 +510,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp2);
   }
@@ -530,7 +530,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp));
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     instructions.addInstruction(Instr::LOAD,variables.getIndex(tmp2));
   }
@@ -545,7 +545,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp2);
   }
@@ -592,7 +592,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp2);
   }
@@ -648,7 +648,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp2);
   }
@@ -685,7 +685,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp2);
   }
@@ -726,7 +726,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp2);
   }
@@ -752,7 +752,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp2);
   }
@@ -775,7 +775,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp2);
   }
@@ -802,7 +802,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp2);
   }
@@ -825,7 +825,7 @@ void IntInstr::addDivInstruction(VariableRegistry& variables, InstructionRegistr
   {
     IntInstr::addSubInstruction(variables,instructions,tmp);
   }
-  else if(out == argument2 || remainder == argument2)
+  else if(VariableRegistry::stripPointer(out) == VariableRegistry::stripPointer(argument2) || VariableRegistry::stripPointer(remainder) == VariableRegistry::stripPointer(argument2))
   {
     IntInstr::addSubInstruction(variables,instructions,tmp2);
   }
