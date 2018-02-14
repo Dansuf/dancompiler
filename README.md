@@ -33,6 +33,10 @@ The program compiles successfully with the following configuration:
 * Bison 3.0.4
 * Flex 2.6.0
 
+## Optimizations
+
+Main effort was put into optimizing the assembler code of division and multiplication. There are also multiple smaller optimizations. The compiler took 3rd place out of 85 compilers based on the speed of the compiled assembler code in a competition performed at the end of the course.
+
 ## Author
 
 Created by Tomasz Kuczak.
